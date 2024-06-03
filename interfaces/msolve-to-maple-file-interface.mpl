@@ -191,7 +191,12 @@ local str, msolve_path, fname1, fname2, file_dir, verb, param, nthreads, output,
      fname2 := cat(file_dir, RandomTools[Generate](string(8,alpha)), ".ms");;
   end if;
 
-  param:=0;
+  str:=subs(opts,"param");
+  if type(str, integer) and str in [0, 1, 2] then
+     param:=str;
+  else
+     param:=0:
+  end if;
   msolve_path, fname1, fname2, file_dir, verb, param, nthreads, output, gb, elim;
 end proc;
 
@@ -328,7 +333,6 @@ lsols, nl, i, j, gb, output, nthreads, str, sols, prec, elim;
    fi:
    str := cat(msolve_path, " -v ", verb, " -P ", param, " -p ", prec, " -t ", nthreads, " -f ", fname1, " -o ", fname2):
    gb:=0; #Needed to avoid the user stops GB comp once a prime computation is done
-   param:=0;
    try
    system(str):
    read(fname2):
@@ -345,6 +349,10 @@ lsols, nl, i, j, gb, output, nthreads, str, sols, prec, elim;
       return [];
    end if;
 
+   if param = 2 then
+      return GetRootsFromMSolve(results[-1]);
+   end if;
+
    dim := results[1];
    if dim = -1 then
       if verb >= 1 then
@@ -359,7 +367,11 @@ lsols, nl, i, j, gb, output, nthreads, str, sols, prec, elim;
       return [1];
    end if;
    if dim = 0 then
-      lsols := results[2];
+      if param = 1 then
+         lsols := [op(results[3][1]), map(s -> subs(zip((k,v) -> k = v, results[2][4], s), vars), results[3][2])];
+      else
+         lsols := results[2];
+      end if;
       nl := lsols[1]:
       sols:=[]:
       for i from 1 to nl do
