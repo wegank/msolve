@@ -428,7 +428,7 @@ int main(int argc, char **argv){
 
     gens->rand_linear           = 0;
     gens->random_linear_form = malloc(sizeof(int32_t)*(nr_vars));
-    gens->elim = elim_block_len;
+    gens->elim = 0;
 
     if(0 < field_char && field_char < pow(2, 15) && la_option > 2){
         if(info_level){

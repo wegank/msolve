@@ -699,16 +699,6 @@ static inline int32_t maxbitsize_generators(bs_t *bs){
 /* returns the index of the largest polynomial in the basis of the elimination
  * ideal */
 static inline int32_t compute_num_gb(int32_t *bexp_lm, int32_t len, int nv, int nev){
-  if(nev){
-    for(int32_t i = 0; i < len; i++){
-      for(int32_t j = 0; j < nev; j++){
-        if(bexp_lm[i*nv+j]){
-          return i;
-        }
-      }
-    }
-    return len;
-  }
   return len;
 }
 
@@ -757,17 +747,7 @@ static int32_t gb_modular_trace_learning(gb_modpoly_t modgbs,
     leadmons[0] = bexp_lm;
 
     int32_t len = bs->lml;
-    num_gb[0] = compute_num_gb(bexp_lm, len, bht->nv, st->nev);
-    int32_t *bexp_lm2 = NULL;
-    if(st->nev){
-      bexp_lm2 = calloc(num_gb[0]*(bht->nv - st->nev), sizeof(int32_t));
-      for(int32_t i = 0; i < num_gb[0]; i++){
-        for(int j = 0; j < bht->nv - st->nev; j++){
-          bexp_lm2[i*(bht->nv - st->nev) + j] = bexp_lm[i*bht->nv + st->nev + j];
-        }
-      }
-      leadmons[0] = bexp_lm2;
-    }
+    num_gb[0] = compute_num_gb(bexp_lm, len, bht->nv, 0);
     /************************************************/
     /************************************************/
 
@@ -782,16 +762,16 @@ static int32_t gb_modular_trace_learning(gb_modpoly_t modgbs,
     /************************************************/
     /************************************************/
 
-    int32_t *lens = array_of_lengths(leadmons[0], num_gb[0], bs, bht->nv - st->nev);
+    int32_t *lens = array_of_lengths(leadmons[0], num_gb[0], bs, bht->nv);
 
     if(truncate_lifting != 0 && truncate_lifting < num_gb[0]){
-      gb_modpoly_init(modgbs, 2, lens, bs, bht->nv - st->nev, truncate_lifting, leadmons[0], st);
+      gb_modpoly_init(modgbs, 2, lens, bs, bht->nv, truncate_lifting, leadmons[0], st);
     }
     else{
-      gb_modpoly_init(modgbs, 2, lens, bs, bht->nv - st->nev, num_gb[0], leadmons[0], st);
+      gb_modpoly_init(modgbs, 2, lens, bs, bht->nv, num_gb[0], leadmons[0], st);
     }
     free(lens);
-    modpgbs_set(modgbs, bs, bht, fc, start, st->nev);
+    modpgbs_set(modgbs, bs, bht, fc, start, 0);
     int is_empty = 0;
     if(bs->lml == 1){
         if(info_level){
@@ -865,17 +845,6 @@ static void gb_modular_trace_application(gb_modpoly_t modgbs,
       return;
   }
   int32_t lml = bs->lml;
-  if (st->nev > 0) {
-      int32_t j = 0;
-      for (len_t i = 0; i < bs->lml; ++i) {
-          if ((*bht)->ev[bs->hm[bs->lmps[i]][OFFSET]][0] == 0) {
-              bs->lm[j]   = bs->lm[i];
-              bs->lmps[j] = bs->lmps[i];
-              ++j;
-          }
-      }
-      lml = j;
-  }
   if (lml != num_gb[0]) {
       if (bs != NULL) {
         free_basis_and_only_local_hash_table_data(&bs);
@@ -883,21 +852,16 @@ static void gb_modular_trace_application(gb_modpoly_t modgbs,
       return;
   }
 
-  if(st->nev){
-    get_lm_from_bs_trace_elim(bs, bht[0], leadmons_current[0], num_gb[0]);
-  }
-  else{
-    get_lm_from_bs_trace(bs, bht[0], leadmons_current[0]);
-  }
+  get_lm_from_bs_trace(bs, bht[0], leadmons_current[0]);
 
   if(!equal_staircase(leadmons_current[0], leadmons_ori[0],
-                      num_gb[0], num_gb[0], bht[0]->nv - st->nev)){
+                      num_gb[0], num_gb[0], bht[0]->nv)){
     bad_primes[0] = 1;
   }
 
   if(!bad_primes[0] && bs != NULL){
     /* copy of data for multi-mod computation */
-    modpgbs_set(modgbs, bs, bht[0], lp->p[0], start, st->nev);
+    modpgbs_set(modgbs, bs, bht[0], lp->p[0], start, 0);
   }
 
   if (bs != NULL) {
@@ -1382,7 +1346,7 @@ gb_modpoly_t *core_groebner_qq(
     if(!dlinit){
       int nb = 0;
       int32_t *ldeg = array_nbdegrees((*msd->leadmons_ori), msd->num_gb[0],
-                                      bs->ht->nv - st->nev, &nb);
+                                      bs->ht->nv, &nb);
       data_lift_init(dlift, (*modgbsp)->ld, ldeg, nb);
       choose_coef_to_lift((*modgbsp), dlift);
       free(ldeg);
@@ -1643,7 +1607,7 @@ uint64_t export_results_from_groebner_qq(
     /* gb->nv, thus we need to help us with adding elim_block_len */
     /* correspondingly when exporting the basis. */
     int32_t nv    = gb->nv;
-    int32_t nve   = gb->bht->nv;
+    int32_t nve   = nv;
 
     *bld  = nelts;
 
@@ -1701,7 +1665,7 @@ uint64_t export_results_from_groebner_qq(
         hm  = gb->hm[idx]+OFFSET;
         int32_t l = gb->modpolys[p]->len;
         for(int32_t n = 0; n < nv; n++){
-            exp[term * nve + n + elim_block_len] = gb->ldm[p * nv + n];
+            exp[term * nve + n] = gb->ldm[p * nv + n];
         }
         mpz_set(cf_qq[term], gb->modpolys[p]->lm);
 
@@ -1852,7 +1816,7 @@ void print_msolve_gbtrace_qq(data_gens_ff_t *gens,
   fprintf(ofile, "#---\n");
   fprintf(ofile, "#field characteristic: 0\n");
   fprintf(ofile, "#variable order:       ");
-  for (int i = gens->elim; i < gens->nvars-1; ++i) {
+  for (int i = 0; i < gens->nvars-1; ++i) {
     fprintf(ofile, "%s, ", gens->vnames[i]);
   }
   fprintf(ofile, "%s\n", gens->vnames[gens->nvars-1]);
