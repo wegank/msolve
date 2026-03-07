@@ -200,7 +200,7 @@ static void getoptions(
         int32_t *nthreads,
         int32_t *max_pairs,
         int32_t *elim_block_len,
-        int32_t *linear_algebra,
+        int32_t *la_option,
         int32_t *use_signatures,
         int32_t *update_ht,
         int32_t *reduce_gb,
@@ -342,7 +342,7 @@ static void getoptions(
       *nthreads = strtol(optarg, NULL, 10);
       break;
     case 'l':
-      *linear_algebra = strtol(optarg, NULL, 10);
+      *la_option = strtol(optarg, NULL, 10);
       break;
     case 'f':
       fflag = 0;

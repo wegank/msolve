@@ -1080,6 +1080,7 @@ void set_function_pointers(
             reduce_dense_row_by_dense_new_pivots_31_bit;
       }
   }
+  publish_function_pointers_table();
 }
 
 int32_t check_and_set_meta_data_trace(
@@ -1220,6 +1221,7 @@ static inline void reset_function_pointers(
         }
     }
 
+    publish_function_pointers_table();
 }
 static inline void reset_trace_function_pointers(
         const uint32_t prime
@@ -1270,6 +1272,7 @@ static inline void reset_trace_function_pointers(
         }
     }
 
+    publish_function_pointers_table();
 }
 
 static void write_pbm_file(

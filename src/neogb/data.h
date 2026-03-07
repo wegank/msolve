@@ -37,6 +37,7 @@
 typedef int omp_int_t;
 static inline omp_int_t omp_get_thread_num(void) { return 0;}
 static inline omp_int_t omp_get_max_threads(void) { return 1;}
+static inline omp_int_t omp_in_parallel(void) { return 0;}
 #endif
 
 #define PARALLEL_HASHING 0
@@ -435,150 +436,171 @@ struct md_t
     uint32_t nr_kernel_elts;
 };
 
-/* function pointers */
-/* extern bs_t *(*initialize_basis)(
- *         const int32_t ngens
- *         ); */
-extern void (*normalize_initial_basis)(
-        bs_t *bs,
-        const uint32_t fc
-        );
+typedef struct function_pointers_t function_pointers_t;
+struct function_pointers_t {
+        void (*normalize_initial_basis_ptr)(
+                bs_t *bs,
+                const uint32_t fc
+                );
 
-extern int (*initial_input_cmp)(
-        const void *a,
-        const void *b,
-        void *ht
-        );
+        int (*initial_input_cmp_ptr)(
+                const void *a,
+                const void *b,
+                void *ht
+                );
 
-extern int (*initial_gens_cmp)(
-        const void *a,
-        const void *b,
-        void *ht
-        );
+        int (*initial_gens_cmp_ptr)(
+                const void *a,
+                const void *b,
+                void *ht
+                );
 
-extern int (*monomial_cmp)(
-        const hi_t a,
-        const hi_t b,
-        const ht_t *ht
-        );
+        int (*monomial_cmp_ptr)(
+                const hi_t a,
+                const hi_t b,
+                const ht_t *ht
+                );
 
-extern int (*spair_cmp)(
-        const void *a,
-        const void *b,
-        void *htp
-        );
+        int (*spair_cmp_ptr)(
+                const void *a,
+                const void *b,
+                void *htp
+                );
 
-extern int (*hcm_cmp)(
-        const void *a,
-        const void *b,
-        void *htp
-        );
+        int (*hcm_cmp_ptr)(
+                const void *a,
+                const void *b,
+                void *htp
+                );
 
-/* linear algebra routines */
-extern void (*sba_linear_algebra)(
-        smat_t *smat,
-        crit_t *syz,
-        md_t *st,
-        const ht_t * const ht
-        );
+        void (*sba_linear_algebra_ptr)(
+                smat_t *smat,
+                crit_t *syz,
+                md_t *st,
+                const ht_t * const ht
+                );
 
-extern void (*exact_linear_algebra)(
-        mat_t *mat,
-        const bs_t * const tbr,
-        const bs_t * const bs,
-        md_t *st
-        );
+        void (*exact_linear_algebra_ptr)(
+                mat_t *mat,
+                const bs_t * const tbr,
+                const bs_t * const bs,
+                md_t *st
+                );
 
-extern void (*linear_algebra)(
-        mat_t *mat,
-        const bs_t * const tbr,
-        const bs_t * const bs,
-        md_t *st
-        );
+        void (*linear_algebra_ptr)(
+                mat_t *mat,
+                const bs_t * const tbr,
+                const bs_t * const bs,
+                md_t *st
+                );
 
-extern int (*application_linear_algebra)(
-        mat_t *mat,
-        const bs_t * const bs,
-        md_t *st
-        );
+        int (*application_linear_algebra_ptr)(
+                mat_t *mat,
+                const bs_t * const bs,
+                md_t *st
+                );
 
-extern void (*trace_linear_algebra)(
-        trace_t *trace,
-        mat_t *mat,
-        const bs_t * const bs,
-        md_t *st
-        );
+        void (*trace_linear_algebra_ptr)(
+                trace_t *trace,
+                mat_t *mat,
+                const bs_t * const bs,
+                md_t *st
+                );
 
-extern void (* interreduce_matrix_rows)(
-        mat_t *mat,
-        bs_t *bs,
-        md_t *st,
-        int free_basis
-        );
+        void (*interreduce_matrix_rows_ptr)(
+                mat_t *mat,
+                bs_t *bs,
+                md_t *st,
+                int free_basis
+                );
 
-extern cf32_t *(*reduce_dense_row_by_old_pivots_ff_32)(
-        int64_t *dr,
-        mat_t *mat,
-        const bs_t * const bs,
-        hm_t * const * const pivs,
-        const hi_t dpiv,
-        const uint32_t fc
-        );
+        cf32_t *(*reduce_dense_row_by_old_pivots_ff_32_ptr)(
+                int64_t *dr,
+                mat_t *mat,
+                const bs_t * const bs,
+                hm_t * const * const pivs,
+                const hi_t dpiv,
+                const uint32_t fc
+                );
 
-extern hm_t *(*sba_reduce_dense_row_by_known_pivots_sparse_ff_32)(
-        int64_t *dr,
-        smat_t *smat,
-        hm_t *const *pivs,
-        const hi_t dpiv,    /* pivot of dense row at the beginning */
-        const hm_t sm,      /* signature monomial of row reduced */
-        const len_t si,     /* signature index of row reduced */
-        const len_t ri,     /* index of row in matrix */
-        md_t *st
-        );
+        hm_t *(*sba_reduce_dense_row_by_known_pivots_sparse_ff_32_ptr)(
+                int64_t *dr,
+                smat_t *smat,
+                hm_t *const *pivs,
+                const hi_t dpiv,
+                const hm_t sm,
+                const len_t si,
+                const len_t ri,
+                md_t *st
+                );
 
-extern hm_t *(*reduce_dense_row_by_known_pivots_sparse_ff_32)(
-        int64_t *dr,
-        mat_t *mat,
-        const bs_t * const bs,
-        hm_t *const *pivs,
-        const hi_t dpiv,
-        const hm_t tmp_pos,
-        const len_t mh,     /* multiplier hash for tracing */
-        const len_t bi,     /* basis index of generating element */
-        const len_t tr,     /* trace data? */
-        md_t *st
-        );
+        hm_t *(*reduce_dense_row_by_known_pivots_sparse_ff_32_ptr)(
+                int64_t *dr,
+                mat_t *mat,
+                const bs_t * const bs,
+                hm_t *const *pivs,
+                const hi_t dpiv,
+                const hm_t tmp_pos,
+                const len_t mh,
+                const len_t bi,
+                const len_t tr,
+                md_t *st
+                );
 
-extern hm_t *(*trace_reduce_dense_row_by_known_pivots_sparse_ff_32)(
-        rba_t *rba,
-        int64_t *dr,
-        mat_t *mat,
-        const bs_t * const bs,
-        hm_t *const *pivs,
-        const hi_t dpiv,
-        const hm_t tmp_pos,
-        const len_t mh,
-        const len_t bi,
-        md_t *st
-        );
+        hm_t *(*trace_reduce_dense_row_by_known_pivots_sparse_ff_32_ptr)(
+                rba_t *rba,
+                int64_t *dr,
+                mat_t *mat,
+                const bs_t * const bs,
+                hm_t *const *pivs,
+                const hi_t dpiv,
+                const hm_t tmp_pos,
+                const len_t mh,
+                const len_t bi,
+                md_t *st
+                );
 
-extern cf32_t *(*reduce_dense_row_by_all_pivots_ff_32)(
-        int64_t *dr,
-        mat_t *mat,
-        const bs_t * const bs,
-        len_t *pc,
-        hm_t *const *pivs,
-        cf32_t *const *dpivs,
-        const uint32_t fc
-        );
+        cf32_t *(*reduce_dense_row_by_all_pivots_ff_32_ptr)(
+                int64_t *dr,
+                mat_t *mat,
+                const bs_t * const bs,
+                len_t *pc,
+                hm_t *const *pivs,
+                cf32_t *const *dpivs,
+                const uint32_t fc
+                );
 
+        cf32_t *(*reduce_dense_row_by_dense_new_pivots_ff_32_ptr)(
+                int64_t *dr,
+                len_t *pc,
+                cf32_t * const * const pivs,
+                const len_t ncr,
+                const uint32_t fc
+                );
+};
 
-extern cf32_t *(*reduce_dense_row_by_dense_new_pivots_ff_32)(
-        int64_t *dr,
-        len_t *pc,
-        cf32_t * const * const pivs,
-        const len_t ncr,
-        const uint32_t fc
-        );
+function_pointers_t *get_function_pointers_table(void);
+void publish_function_pointers_table(void);
+
+#ifndef NEOGB_NO_DISPATCH_ALIASES
+#define normalize_initial_basis (get_function_pointers_table()->normalize_initial_basis_ptr)
+#define initial_input_cmp (get_function_pointers_table()->initial_input_cmp_ptr)
+#define initial_gens_cmp (get_function_pointers_table()->initial_gens_cmp_ptr)
+#define monomial_cmp (get_function_pointers_table()->monomial_cmp_ptr)
+#define spair_cmp (get_function_pointers_table()->spair_cmp_ptr)
+#define hcm_cmp (get_function_pointers_table()->hcm_cmp_ptr)
+#define sba_linear_algebra (get_function_pointers_table()->sba_linear_algebra_ptr)
+#define exact_linear_algebra (get_function_pointers_table()->exact_linear_algebra_ptr)
+#define linear_algebra (get_function_pointers_table()->linear_algebra_ptr)
+#define application_linear_algebra (get_function_pointers_table()->application_linear_algebra_ptr)
+#define trace_linear_algebra (get_function_pointers_table()->trace_linear_algebra_ptr)
+#define interreduce_matrix_rows (get_function_pointers_table()->interreduce_matrix_rows_ptr)
+#define reduce_dense_row_by_old_pivots_ff_32 (get_function_pointers_table()->reduce_dense_row_by_old_pivots_ff_32_ptr)
+#define sba_reduce_dense_row_by_known_pivots_sparse_ff_32 (get_function_pointers_table()->sba_reduce_dense_row_by_known_pivots_sparse_ff_32_ptr)
+#define reduce_dense_row_by_known_pivots_sparse_ff_32 (get_function_pointers_table()->reduce_dense_row_by_known_pivots_sparse_ff_32_ptr)
+#define trace_reduce_dense_row_by_known_pivots_sparse_ff_32 (get_function_pointers_table()->trace_reduce_dense_row_by_known_pivots_sparse_ff_32_ptr)
+#define reduce_dense_row_by_all_pivots_ff_32 (get_function_pointers_table()->reduce_dense_row_by_all_pivots_ff_32_ptr)
+#define reduce_dense_row_by_dense_new_pivots_ff_32 (get_function_pointers_table()->reduce_dense_row_by_dense_new_pivots_ff_32_ptr)
+#endif
 
 #endif
