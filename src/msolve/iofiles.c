@@ -977,12 +977,16 @@ static inline void get_data_from_file(char *fn, int32_t *nr_vars,
                                       int32_t *field_char,
                                       int32_t *nr_gens, data_gens_ff_t *gens){
   *nr_vars = get_nvars(fn);
-  if (*nr_vars == -1)
+  if (*nr_vars == -1) {
     fprintf(stderr,"Bad file format (first line).\n");
+    exit(1);
+  }
 
   *nr_gens = get_ngenerators(fn);
-  if (*nr_gens == -1)
+  if (*nr_gens == -1) {
     fprintf(stderr,"Bad file format (generators).\n");
+    exit(1);
+  }
 
   const int max_line_size  = 1073741824;
   char *line  = (char *)malloc((nelts_t)max_line_size * sizeof(char));
@@ -998,6 +1002,7 @@ static inline void get_data_from_file(char *fn, int32_t *nr_vars,
       }
       free(vnames);
       free(line);
+      fclose(fh);
       exit(1);
   }
   get_characteristic(fh, line, max_line_size, field_char, vnames);
