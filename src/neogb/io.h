@@ -24,7 +24,7 @@
 #include "data.h"
 
 void set_function_pointers(
-        const md_t *st
+        md_t *st
         );
 
 void set_ff_bits(md_t *st, int32_t fc);

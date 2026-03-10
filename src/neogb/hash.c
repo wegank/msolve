@@ -42,6 +42,22 @@ static val_t pseudo_random_number_generator(
     return (val_t)rseed;
 }
 
+static const neogb_ops_t *clone_hash_ops(
+    const neogb_ops_t *src
+    )
+{
+    if (src == NULL) {
+        return NULL;
+    }
+    neogb_ops_t *dst = (neogb_ops_t *)malloc(sizeof(neogb_ops_t));
+    if (dst == NULL) {
+        fprintf(stderr, "Could not allocate hash-table dispatch table.\n");
+        return NULL;
+    }
+    *dst = *src;
+    return dst;
+}
+
 ht_t *initialize_basis_hash_table(
     md_t *st
     )
@@ -53,6 +69,8 @@ ht_t *initialize_basis_hash_table(
 
     ht_t *ht  = (ht_t *)malloc(sizeof(ht_t));
     ht->nv    = nv;
+    ht->mo    = st->mo;
+    ht->ops   = clone_hash_ops(&st->ops);
     /* generate map */
     ht->bpv = (len_t)((CHAR_BIT * sizeof(sdm_t)) / (unsigned long)nv);
     if (ht->bpv == 0) {
@@ -128,7 +146,8 @@ ht_t *initialize_basis_hash_table(
 }
 
 ht_t *copy_hash_table(
-    const ht_t *bht
+    const ht_t *bht,
+    const md_t *st
     )
 {
     hl_t j;
@@ -136,6 +155,12 @@ ht_t *copy_hash_table(
     ht_t *ht  = (ht_t *)malloc(sizeof(ht_t));
 
     ht->nv    = bht->nv;
+    ht->mo    = bht->mo;
+    if (st != NULL) {
+        ht->ops = clone_hash_ops(&st->ops);
+    } else {
+        ht->ops = clone_hash_ops(bht->ops);
+    }
     ht->evl   = bht->evl;
     ht->ebl   = bht->ebl;
     ht->hsz   = bht->hsz;
@@ -187,6 +212,12 @@ ht_t *initialize_secondary_hash_table(
 
     ht_t *ht  = (ht_t *)malloc(sizeof(ht_t)); 
     ht->nv    = bht->nv;
+    ht->mo    = bht->mo;
+    if (md != NULL) {
+        ht->ops = clone_hash_ops(&md->ops);
+    } else {
+        ht->ops = clone_hash_ops(bht->ops);
+    }
     ht->evl   = bht->evl;
     ht->ebl   = bht->ebl;
 
@@ -252,6 +283,10 @@ void free_hash_table(
     )
 {
     ht_t *ht  = *htp;
+    if (ht != NULL && ht->ops != NULL) {
+        free((void *)ht->ops);
+        ht->ops = NULL;
+    }
     if (ht->hmap) {
         free(ht->hmap);
         ht->hmap = NULL;
@@ -277,6 +312,10 @@ void full_free_hash_table(
                      )
 {
   ht_t *ht  = *htp;
+  if (ht != NULL && ht->ops != NULL) {
+    free((void *)ht->ops);
+    ht->ops = NULL;
+  }
   if (ht->hmap) {
     free(ht->hmap);
     ht->hmap = NULL;

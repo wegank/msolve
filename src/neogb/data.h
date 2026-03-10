@@ -87,6 +87,7 @@ typedef int32_t deg_t;   /* (total) degree of polynomial */
 typedef len_t bi_t;      /* basis index of element */
 typedef len_t bl_t;      /* basis load */
 typedef len_t pl_t;      /* pair set load */
+typedef struct neogb_ops_t neogb_ops_t;
 
 /* hash data structure */
 typedef struct hd_t hd_t;
@@ -130,6 +131,7 @@ struct ht_t
     len_t ebl;    /* elimination block length:
                    * degree + #elimination variables,
                    * 0 if no elimination order */
+    int32_t mo;   /* monomial ordering: 0=DRL, 1=LEX */
     len_t nv;     /* number of variables */
     len_t evl;    /* real length of exponent vector,
                    * includes degree (or two degrees
@@ -140,6 +142,7 @@ struct ht_t
     len_t bpv;    /* bits per variable in divmask */
     val_t *rn;    /* random numbers for hash generation */
     uint32_t rsd; /* seed for random number generator */
+    const neogb_ops_t *ops; /* hash-table-local dispatch table */
 };
 
 /* S-pair types */
@@ -322,8 +325,134 @@ struct trace_t
 };
 
 
-/* meta data stuff */
 typedef struct md_t md_t;
+struct neogb_ops_t
+{
+    int (*initial_input_cmp)(
+            const void *a,
+            const void *b,
+            void *ht
+            );
+    int (*initial_gens_cmp)(
+            const void *a,
+            const void *b,
+            void *ht
+            );
+    int (*monomial_cmp)(
+            const hi_t a,
+            const hi_t b,
+            const ht_t *ht
+            );
+    int (*spair_cmp)(
+            const void *a,
+            const void *b,
+            void *htp
+            );
+    int (*hcm_cmp)(
+            const void *a,
+            const void *b,
+            void *htp
+            );
+    void (*normalize_initial_basis)(
+            bs_t *bs,
+            const uint32_t fc
+            );
+    void (*sba_linear_algebra)(
+            smat_t *smat,
+            crit_t *syz,
+            md_t *st,
+            const ht_t * const ht
+            );
+    void (*exact_linear_algebra)(
+            mat_t *mat,
+            const bs_t * const tbr,
+            const bs_t * const bs,
+            md_t *st
+            );
+    void (*linear_algebra)(
+            mat_t *mat,
+            const bs_t * const tbr,
+            const bs_t * const bs,
+            md_t *st
+            );
+    int (*application_linear_algebra)(
+            mat_t *mat,
+            const bs_t * const bs,
+            md_t *st
+            );
+    void (*trace_linear_algebra)(
+            trace_t *trace,
+            mat_t *mat,
+            const bs_t * const bs,
+            md_t *st
+            );
+    void (*interreduce_matrix_rows)(
+            mat_t *mat,
+            bs_t *bs,
+            md_t *st,
+            int free_basis
+            );
+    cf32_t *(*reduce_dense_row_by_old_pivots_ff_32)(
+            int64_t *dr,
+            mat_t *mat,
+            const bs_t * const bs,
+            hm_t * const * const pivs,
+            const hi_t dpiv,
+            const uint32_t fc
+            );
+    hm_t *(*sba_reduce_dense_row_by_known_pivots_sparse_ff_32)(
+            int64_t *dr,
+            smat_t *smat,
+            hm_t *const *pivs,
+            const hi_t dpiv,
+            const hm_t sm,
+            const len_t si,
+            const len_t ri,
+            md_t *st
+            );
+    hm_t *(*reduce_dense_row_by_known_pivots_sparse_ff_32)(
+            int64_t *dr,
+            mat_t *mat,
+            const bs_t * const bs,
+            hm_t *const *pivs,
+            const hi_t dpiv,
+            const hm_t tmp_pos,
+            const len_t mh,
+            const len_t bi,
+            const len_t tr,
+            md_t *st
+            );
+    hm_t *(*trace_reduce_dense_row_by_known_pivots_sparse_ff_32)(
+            rba_t *rba,
+            int64_t *dr,
+            mat_t *mat,
+            const bs_t * const bs,
+            hm_t *const *pivs,
+            const hi_t dpiv,
+            const hm_t tmp_pos,
+            const len_t mh,
+            const len_t bi,
+            md_t *st
+            );
+    cf32_t *(*reduce_dense_row_by_all_pivots_ff_32)(
+            int64_t *dr,
+            mat_t *mat,
+            const bs_t * const bs,
+            len_t *pc,
+            hm_t *const *pivs,
+            cf32_t *const *dpivs,
+            const uint32_t fc
+            );
+    cf32_t *(*reduce_dense_row_by_dense_new_pivots_ff_32)(
+            int64_t *dr,
+            len_t *pc,
+            cf32_t * const * const pivs,
+            const len_t ncr,
+            const uint32_t fc
+            );
+};
+
+/* meta data stuff */
 struct md_t
 {
     /* trace data */
@@ -333,6 +462,7 @@ struct md_t
 
     /* hash table data */
     ht_t *ht;
+    neogb_ops_t ops;
 
     len_t np; /* new pivots */
 
@@ -435,88 +565,84 @@ struct md_t
     uint32_t nr_kernel_elts;
 };
 
-/* function pointers */
-/* extern bs_t *(*initialize_basis)(
- *         const int32_t ngens
- *         ); */
-extern void (*normalize_initial_basis)(
+/* context-dispatched entry points */
+void normalize_initial_basis(
         bs_t *bs,
         const uint32_t fc
         );
 
-extern int (*initial_input_cmp)(
+int initial_input_cmp(
         const void *a,
         const void *b,
         void *ht
         );
 
-extern int (*initial_gens_cmp)(
+int initial_gens_cmp(
         const void *a,
         const void *b,
         void *ht
         );
 
-extern int (*monomial_cmp)(
+int monomial_cmp(
         const hi_t a,
         const hi_t b,
         const ht_t *ht
         );
 
-extern int (*spair_cmp)(
+int spair_cmp(
         const void *a,
         const void *b,
         void *htp
         );
 
-extern int (*hcm_cmp)(
+int hcm_cmp(
         const void *a,
         const void *b,
         void *htp
         );
 
-/* linear algebra routines */
-extern void (*sba_linear_algebra)(
+void sba_linear_algebra(
         smat_t *smat,
         crit_t *syz,
         md_t *st,
         const ht_t * const ht
         );
 
-extern void (*exact_linear_algebra)(
+void exact_linear_algebra(
         mat_t *mat,
         const bs_t * const tbr,
         const bs_t * const bs,
         md_t *st
         );
 
-extern void (*linear_algebra)(
+void linear_algebra(
         mat_t *mat,
         const bs_t * const tbr,
         const bs_t * const bs,
         md_t *st
         );
 
-extern int (*application_linear_algebra)(
+int application_linear_algebra(
         mat_t *mat,
         const bs_t * const bs,
         md_t *st
         );
 
-extern void (*trace_linear_algebra)(
+void trace_linear_algebra(
         trace_t *trace,
         mat_t *mat,
         const bs_t * const bs,
         md_t *st
         );
 
-extern void (* interreduce_matrix_rows)(
+void interreduce_matrix_rows(
         mat_t *mat,
         bs_t *bs,
         md_t *st,
         int free_basis
         );
 
-extern cf32_t *(*reduce_dense_row_by_old_pivots_ff_32)(
+cf32_t *reduce_dense_row_by_old_pivots_ff_32(
         int64_t *dr,
         mat_t *mat,
         const bs_t * const bs,
@@ -525,31 +651,31 @@ extern cf32_t *(*reduce_dense_row_by_old_pivots_ff_32)(
         const uint32_t fc
         );
 
-extern hm_t *(*sba_reduce_dense_row_by_known_pivots_sparse_ff_32)(
+hm_t *sba_reduce_dense_row_by_known_pivots_sparse_ff_32(
         int64_t *dr,
         smat_t *smat,
         hm_t *const *pivs,
-        const hi_t dpiv,    /* pivot of dense row at the beginning */
-        const hm_t sm,      /* signature monomial of row reduced */
-        const len_t si,     /* signature index of row reduced */
-        const len_t ri,     /* index of row in matrix */
+        const hi_t dpiv,
+        const hm_t sm,
+        const len_t si,
+        const len_t ri,
         md_t *st
         );
 
-extern hm_t *(*reduce_dense_row_by_known_pivots_sparse_ff_32)(
+hm_t *reduce_dense_row_by_known_pivots_sparse_ff_32(
         int64_t *dr,
         mat_t *mat,
         const bs_t * const bs,
         hm_t *const *pivs,
         const hi_t dpiv,
         const hm_t tmp_pos,
-        const len_t mh,     /* multiplier hash for tracing */
-        const len_t bi,     /* basis index of generating element */
-        const len_t tr,     /* trace data? */
+        const len_t mh,
+        const len_t bi,
+        const len_t tr,
         md_t *st
         );
 
-extern hm_t *(*trace_reduce_dense_row_by_known_pivots_sparse_ff_32)(
+hm_t *trace_reduce_dense_row_by_known_pivots_sparse_ff_32(
         rba_t *rba,
         int64_t *dr,
         mat_t *mat,
@@ -562,7 +688,7 @@ extern hm_t *(*trace_reduce_dense_row_by_known_pivots_sparse_ff_32)(
         md_t *st
         );
 
-extern cf32_t *(*reduce_dense_row_by_all_pivots_ff_32)(
+cf32_t *reduce_dense_row_by_all_pivots_ff_32(
         int64_t *dr,
         mat_t *mat,
         const bs_t * const bs,
@@ -572,8 +698,131 @@ extern cf32_t *(*reduce_dense_row_by_all_pivots_ff_32)(
         const uint32_t fc
         );
 
+cf32_t *reduce_dense_row_by_dense_new_pivots_ff_32(
+        int64_t *dr,
+        len_t *pc,
+        cf32_t * const * const pivs,
+        const len_t ncr,
+        const uint32_t fc
+        );
 
-extern cf32_t *(*reduce_dense_row_by_dense_new_pivots_ff_32)(
+/* dispatch implementations used to populate context ops */
+void dispatch_normalize_initial_basis(
+        bs_t *bs,
+        const uint32_t fc
+        );
+int dispatch_initial_input_cmp(
+        const void *a,
+        const void *b,
+        void *ht
+        );
+int dispatch_initial_gens_cmp(
+        const void *a,
+        const void *b,
+        void *ht
+        );
+int dispatch_monomial_cmp(
+        const hi_t a,
+        const hi_t b,
+        const ht_t *ht
+        );
+int dispatch_spair_cmp(
+        const void *a,
+        const void *b,
+        void *htp
+        );
+int dispatch_hcm_cmp(
+        const void *a,
+        const void *b,
+        void *htp
+        );
+void dispatch_sba_linear_algebra(
+        smat_t *smat,
+        crit_t *syz,
+        md_t *st,
+        const ht_t * const ht
+        );
+void dispatch_exact_linear_algebra(
+        mat_t *mat,
+        const bs_t * const tbr,
+        const bs_t * const bs,
+        md_t *st
+        );
+void dispatch_linear_algebra(
+        mat_t *mat,
+        const bs_t * const tbr,
+        const bs_t * const bs,
+        md_t *st
+        );
+int dispatch_application_linear_algebra(
+        mat_t *mat,
+        const bs_t * const bs,
+        md_t *st
+        );
+void dispatch_trace_linear_algebra(
+        trace_t *trace,
+        mat_t *mat,
+        const bs_t * const bs,
+        md_t *st
+        );
+void dispatch_interreduce_matrix_rows(
+        mat_t *mat,
+        bs_t *bs,
+        md_t *st,
+        int free_basis
+        );
+cf32_t *dispatch_reduce_dense_row_by_old_pivots_ff_32(
+        int64_t *dr,
+        mat_t *mat,
+        const bs_t * const bs,
+        hm_t * const * const pivs,
+        const hi_t dpiv,
+        const uint32_t fc
+        );
+hm_t *dispatch_sba_reduce_dense_row_by_known_pivots_sparse_ff_32(
+        int64_t *dr,
+        smat_t *smat,
+        hm_t *const *pivs,
+        const hi_t dpiv,
+        const hm_t sm,
+        const len_t si,
+        const len_t ri,
+        md_t *st
+        );
+hm_t *dispatch_reduce_dense_row_by_known_pivots_sparse_ff_32(
+        int64_t *dr,
+        mat_t *mat,
+        const bs_t * const bs,
+        hm_t *const *pivs,
+        const hi_t dpiv,
+        const hm_t tmp_pos,
+        const len_t mh,
+        const len_t bi,
+        const len_t tr,
+        md_t *st
+        );
+hm_t *dispatch_trace_reduce_dense_row_by_known_pivots_sparse_ff_32(
+        rba_t *rba,
+        int64_t *dr,
+        mat_t *mat,
+        const bs_t * const bs,
+        hm_t *const *pivs,
+        const hi_t dpiv,
+        const hm_t tmp_pos,
+        const len_t mh,
+        const len_t bi,
+        md_t *st
+        );
+cf32_t *dispatch_reduce_dense_row_by_all_pivots_ff_32(
+        int64_t *dr,
+        mat_t *mat,
+        const bs_t * const bs,
+        len_t *pc,
+        hm_t *const *pivs,
+        cf32_t *const *dpivs,
+        const uint32_t fc
+        );
+cf32_t *dispatch_reduce_dense_row_by_dense_new_pivots_ff_32(
         int64_t *dr,
         len_t *pc,
         cf32_t * const * const pivs,

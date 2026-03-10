@@ -4799,7 +4799,7 @@ restart:
 
             int i;
 
-            ht_t *lht = copy_hash_table(bht);
+            ht_t *lht = copy_hash_table(bht, st);
 
             prime = next_prime(1<<30);
 
@@ -5020,7 +5020,7 @@ restart:
 
             int i;
 
-            ht_t *lht = copy_hash_table(bht);
+            ht_t *lht = copy_hash_table(bht, st);
 
             prime = next_prime(1<<30);
 

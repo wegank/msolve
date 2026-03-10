@@ -43,7 +43,8 @@ ht_t *initialize_basis_hash_table(
     );
 
 ht_t *copy_hash_table(
-    const ht_t *bht
+    const ht_t *bht,
+    const md_t *st
     );
 
 ht_t *initialize_secondary_hash_table(

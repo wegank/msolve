@@ -20,6 +20,7 @@
 
 
 #include "meta_data.h"
+#include "io.h"
 md_t *copy_meta_data(
 		     const md_t * const gmd,
 		     const int32_t prime
@@ -45,6 +46,7 @@ md_t *copy_meta_data(
         }
     }
     set_ff_bits(md, md->fc);
+    set_function_pointers(md);
     return md;
 }
 
