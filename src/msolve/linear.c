@@ -18,12 +18,23 @@
  * Christian Eder
  * Mohab Safey El Din */
 
+static void dispatch_set_linear_poly(nvars_t nlins, uint32_t *lineqs,
+                                     nvars_t *linvars, ht_t *bht,
+                                     int32_t *bexp_lm, bs_t *bs);
+
+static void dispatch_check_and_set_linear_poly(nvars_t *nlins_ptr,
+                                               nvars_t *linvars,
+                                               uint32_t **lineqs_ptr, ht_t *bht,
+                                               int32_t *bexp_lm, bs_t *bs);
+
 void (*set_linear_poly)(nvars_t nlins, uint32_t *lineqs, nvars_t *linvars,
-                        ht_t *bht, int32_t *bexp_lm, bs_t *bs);
+                        ht_t *bht, int32_t *bexp_lm,
+                        bs_t *bs) = dispatch_set_linear_poly;
 
 void (*check_and_set_linear_poly)(nvars_t *nlins_ptr, nvars_t *linvars,
                                   uint32_t **lineqs_ptr, ht_t *bht,
-                                  int32_t *bexp_lm, bs_t *bs);
+                                  int32_t *bexp_lm,
+                                  bs_t *bs) = dispatch_check_and_set_linear_poly;
 
 static inline void set_linear_poly_8(nvars_t nlins, uint32_t *lineqs,
                                      nvars_t *linvars, ht_t *bht,
@@ -403,6 +414,54 @@ static inline void check_and_set_linear_poly_32(nvars_t *nlins_ptr,
     }
   }
   lineqs_ptr[0] = lineqs;
+}
+
+static inline int linear_basis_bits(const bs_t *bs) {
+  if (bs->cf_8 != NULL) {
+    return 8;
+  }
+  if (bs->cf_16 != NULL) {
+    return 16;
+  }
+  return 32;
+}
+
+static void dispatch_set_linear_poly(nvars_t nlins, uint32_t *lineqs,
+                                     nvars_t *linvars, ht_t *bht,
+                                     int32_t *bexp_lm, bs_t *bs) {
+  switch (linear_basis_bits(bs)) {
+  case 8:
+    set_linear_poly_8(nlins, lineqs, linvars, bht, bexp_lm, bs);
+    return;
+  case 16:
+    set_linear_poly_16(nlins, lineqs, linvars, bht, bexp_lm, bs);
+    return;
+  case 32:
+  default:
+    set_linear_poly_32(nlins, lineqs, linvars, bht, bexp_lm, bs);
+    return;
+  }
+}
+
+static void dispatch_check_and_set_linear_poly(nvars_t *nlins_ptr,
+                                               nvars_t *linvars,
+                                               uint32_t **lineqs_ptr, ht_t *bht,
+                                               int32_t *bexp_lm, bs_t *bs) {
+  switch (linear_basis_bits(bs)) {
+  case 8:
+    check_and_set_linear_poly_8(nlins_ptr, linvars, lineqs_ptr, bht, bexp_lm,
+                                bs);
+    return;
+  case 16:
+    check_and_set_linear_poly_16(nlins_ptr, linvars, lineqs_ptr, bht, bexp_lm,
+                                 bs);
+    return;
+  case 32:
+  default:
+    check_and_set_linear_poly_32(nlins_ptr, linvars, lineqs_ptr, bht, bexp_lm,
+                                 bs);
+    return;
+  }
 }
 
 static void inline compute_modular_linear_forms(int nlins, nvars_t sz,

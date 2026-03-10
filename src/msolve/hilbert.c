@@ -37,6 +37,19 @@ void print_fglm_header(
 }
 
 
+static void dispatch_copy_poly_in_matrix_from_bs(sp_matfglm_t *matrix,
+                                                 long nrows, bs_t *bs, ht_t *ht,
+                                                 long idx, long len, long start,
+                                                 long pos, int32_t *lmb,
+                                                 const int nv, const long fc);
+
+static void dispatch_copy_nf_in_matrix_from_bs(sp_matfglm_t *matrix, long nrows,
+                                               long pos, int32_t *lmb,
+                                               const bs_t *const tbr,
+                                               const ht_t *const bht,
+                                               int32_t *evi, const md_t *st,
+                                               const int nv);
+
 static void (*copy_poly_in_matrix_from_bs)(sp_matfglm_t* matrix,
                                            long nrows,
                                            bs_t *bs,
@@ -45,17 +58,19 @@ static void (*copy_poly_in_matrix_from_bs)(sp_matfglm_t* matrix,
                                            long start, long pos,
                                            int32_t *lmb,
                                            const int nv,
-                                           const long fc);
+                                           const long fc) =
+    dispatch_copy_poly_in_matrix_from_bs;
 
 static void (*copy_nf_in_matrix_from_bs)(sp_matfglm_t* matrix,
-					 long nrows,
-					 long pos,
-					 int32_t *lmb,
-					 const bs_t * const tbr,
-					 const ht_t * const bht,
-					 int32_t * evi,
-					 const md_t *st,
-					 const int nv);
+						 long nrows,
+						 long pos,
+						 int32_t *lmb,
+						 const bs_t * const tbr,
+						 const ht_t * const bht,
+						 int32_t * evi,
+						 const md_t *st,
+						 const int nv) =
+    dispatch_copy_nf_in_matrix_from_bs;
 
 
 static int is_pure_power(const int32_t *bexp, const int nv){
@@ -1282,6 +1297,59 @@ static inline void copy_nf_in_matrix_from_bs_32(sp_matfglm_t* matrix,
       }
       i++;
     }
+  }
+}
+
+static inline int hilbert_basis_bits(const bs_t *bs) {
+  if (bs->cf_8 != NULL) {
+    return 8;
+  }
+  if (bs->cf_16 != NULL) {
+    return 16;
+  }
+  return 32;
+}
+
+static void dispatch_copy_poly_in_matrix_from_bs(sp_matfglm_t *matrix,
+                                                 long nrows, bs_t *bs, ht_t *ht,
+                                                 long idx, long len, long start,
+                                                 long pos, int32_t *lmb,
+                                                 const int nv,
+                                                 const long fc) {
+  switch (hilbert_basis_bits(bs)) {
+  case 8:
+    copy_poly_in_matrix_from_bs_8(matrix, nrows, bs, ht, idx, len, start, pos,
+                                  lmb, nv, fc);
+    return;
+  case 16:
+    copy_poly_in_matrix_from_bs_16(matrix, nrows, bs, ht, idx, len, start, pos,
+                                   lmb, nv, fc);
+    return;
+  case 32:
+  default:
+    copy_poly_in_matrix_from_bs_32(matrix, nrows, bs, ht, idx, len, start, pos,
+                                   lmb, nv, fc);
+    return;
+  }
+}
+
+static void dispatch_copy_nf_in_matrix_from_bs(sp_matfglm_t *matrix, long nrows,
+                                               long pos, int32_t *lmb,
+                                               const bs_t *const tbr,
+                                               const ht_t *const bht,
+                                               int32_t *evi, const md_t *st,
+                                               const int nv) {
+  switch (hilbert_basis_bits(tbr)) {
+  case 8:
+    copy_nf_in_matrix_from_bs_8(matrix, nrows, pos, lmb, tbr, bht, evi, st, nv);
+    return;
+  case 16:
+    copy_nf_in_matrix_from_bs_16(matrix, nrows, pos, lmb, tbr, bht, evi, st, nv);
+    return;
+  case 32:
+  default:
+    copy_nf_in_matrix_from_bs_32(matrix, nrows, pos, lmb, tbr, bht, evi, st, nv);
+    return;
   }
 }
 
@@ -3899,4 +3967,3 @@ static inline int equal_staircase(int32_t *lmb, int32_t *lmb_ori,
 
 
 #undef REDUCTION_ALLINONE
-

@@ -423,6 +423,9 @@ static void exact_sparse_reduced_echelon_form_ab_first_qq(
     for (i = 0; i < nrl; ++i) {
         mpz_t *drl  = dr + (omp_get_thread_num() * ncols);
         hm_t *npiv  = upivs[i];
+        if (npiv == NULL) {
+            continue;
+        }
         mpz_t *cfs  = bs->cf_qq[npiv[COEFFS]];
         len_t os    = npiv[PRELOOP];
         len_t len   = npiv[LENGTH];
@@ -541,13 +544,17 @@ static void exact_sparse_reduced_echelon_form_ab_first_qq(
             free(pivs[k]);
             free(cfs);
             pivs[k] = NULL;
-            pivs[k] = mat->tr[npivs] =
-                reduce_dense_row_by_known_pivots_sparse_qq(
-                        dr, mat, bs, pivs, sc, cf_array_pos);
+            hm_t *new_piv = reduce_dense_row_by_known_pivots_sparse_qq(
+                    dr, mat, bs, pivs, sc, cf_array_pos);
+            pivs[k] = new_piv;
+            if (new_piv == NULL) {
+                continue;
+            }
+            mat->tr[npivs] = new_piv;
             remove_content_of_sparse_matrix_row_qq(
-                    mat->cf_qq[mat->tr[npivs][COEFFS]],
-                    mat->tr[npivs][PRELOOP],
-                    mat->tr[npivs][LENGTH]);
+                    mat->cf_qq[new_piv[COEFFS]],
+                    new_piv[PRELOOP],
+                    new_piv[LENGTH]);
             npivs++;
         }
     }
@@ -597,6 +604,9 @@ static void exact_sparse_reduced_echelon_form_qq(
     for (i = 0; i < nrl; ++i) {
         mpz_t *drl  = dr + (omp_get_thread_num() * ncols);
         hm_t *npiv  = upivs[i];
+        if (npiv == NULL) {
+            continue;
+        }
         mpz_t *cfs  = bs->cf_qq[npiv[COEFFS]];
         len_t os    = npiv[PRELOOP];
         len_t len   = npiv[LENGTH];
@@ -712,13 +722,17 @@ static void exact_sparse_reduced_echelon_form_qq(
             free(pivs[k]);
             free(cfs);
             pivs[k] = NULL;
-            pivs[k] = mat->tr[npivs] =
-                reduce_dense_row_by_known_pivots_sparse_qq(
-                        dr, mat, bs, pivs, sc, cf_array_pos);
+            hm_t *new_piv = reduce_dense_row_by_known_pivots_sparse_qq(
+                    dr, mat, bs, pivs, sc, cf_array_pos);
+            pivs[k] = new_piv;
+            if (new_piv == NULL) {
+                continue;
+            }
+            mat->tr[npivs] = new_piv;
             remove_content_of_sparse_matrix_row_qq(
-                    mat->cf_qq[mat->tr[npivs][COEFFS]],
-                    mat->tr[npivs][PRELOOP],
-                    mat->tr[npivs][LENGTH]);
+                    mat->cf_qq[new_piv[COEFFS]],
+                    new_piv[PRELOOP],
+                    new_piv[LENGTH]);
             npivs++;
         }
     }

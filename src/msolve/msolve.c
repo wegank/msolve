@@ -1907,52 +1907,7 @@ int is_splittable(param_t **nmod_params, const int fc){
 
 /* sets function pointer */
 void set_linear_function_pointer(int32_t fc) {
-  int nbits = 0;
-  if (fc == 0) {
-    nbits = 32;
-  }
-  else{
-    if(fc < (int32_t)(1) << 8) {
-      nbits = 8;
-    }
-    else{
-      if(fc < (int32_t)(1) << 16){
-        nbits = 16;
-      } else
-        nbits = 32;
-    }
-  }
-  switch (nbits) {
-  case 8:
-    set_linear_poly = set_linear_poly_8;
-    check_and_set_linear_poly = check_and_set_linear_poly_8;
-    copy_poly_in_matrix_from_bs = copy_poly_in_matrix_from_bs_8;
-    copy_nf_in_matrix_from_bs = copy_nf_in_matrix_from_bs_8;
-    break;
-  case 16:
-    set_linear_poly = set_linear_poly_16;
-    check_and_set_linear_poly = check_and_set_linear_poly_16;
-    copy_poly_in_matrix_from_bs = copy_poly_in_matrix_from_bs_16;
-    copy_nf_in_matrix_from_bs = copy_nf_in_matrix_from_bs_16;
-    break;
-  case 32:
-    set_linear_poly = set_linear_poly_32;
-    check_and_set_linear_poly = check_and_set_linear_poly_32;
-    copy_poly_in_matrix_from_bs = copy_poly_in_matrix_from_bs_32;
-    copy_nf_in_matrix_from_bs = copy_nf_in_matrix_from_bs_32;
-    break;
-  case 0:
-    set_linear_poly = set_linear_poly_32;
-    check_and_set_linear_poly = check_and_set_linear_poly_32;
-    copy_poly_in_matrix_from_bs = copy_poly_in_matrix_from_bs_32;
-    copy_nf_in_matrix_from_bs = copy_nf_in_matrix_from_bs_32;
-    break;
-  default:
-    set_linear_poly = set_linear_poly_32;
-    check_and_set_linear_poly = check_and_set_linear_poly_32;
-    copy_poly_in_matrix_from_bs = copy_poly_in_matrix_from_bs_32;
-    copy_nf_in_matrix_from_bs = copy_nf_in_matrix_from_bs_32;
-  }
+  (void)fc;
 }
 
 static inline int is_lucky_matmul_prime_ui(uint32_t prime,
