@@ -66,6 +66,7 @@ checkdiff               = test/diff/diff_bug-2nd-prime-bad.sh \
 			  test/diff/diff_reals-dim0.sh \
 			  test/diff/diff_reals-dim0-swapvar.sh \
 			  test/diff/diff_test-lifting2.sh \
+			  test/diff/diff_output-line-endings.sh \
 			  test/diff/diff_xy-qq.sh \
 			  test/diff/diff_x2y2-qq.sh
 

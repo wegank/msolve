@@ -19,6 +19,7 @@
  * Mohab Safey El Din */
 
 #include "libmsolve.c"
+#include <errno.h>
 
 #define DEBUGGB 0
 #define DEBUGBUILDMATRIX 0
@@ -26,6 +27,162 @@
 
 #define LONG_OPT_LENGTH 15
 #define ARG_OPT_LENGTH 4
+
+enum {
+  MSOLVE_NEWLINE_UNKNOWN = 0,
+  MSOLVE_NEWLINE_LF = 1,
+  MSOLVE_NEWLINE_CRLF = 2
+};
+
+static inline int write_newline(FILE *file, int newline_style) {
+  if (newline_style == MSOLVE_NEWLINE_CRLF) {
+    if (fputc('\r', file) == EOF || fputc('\n', file) == EOF) {
+      return 1;
+    }
+    return 0;
+  }
+  return (fputc('\n', file) == EOF);
+}
+
+static int detect_file_newline_style(const char *filename) {
+  FILE *file = NULL;
+  int previous_was_cr = 0;
+
+  if (filename == NULL) {
+    return MSOLVE_NEWLINE_UNKNOWN;
+  }
+
+  file = fopen(filename, "rb");
+
+  if (file == NULL) {
+    return MSOLVE_NEWLINE_UNKNOWN;
+  }
+
+  for (;;) {
+    const int ch = fgetc(file);
+    if (ch == EOF) {
+      break;
+    }
+    if (ch == '\n') {
+      fclose(file);
+      return previous_was_cr ? MSOLVE_NEWLINE_CRLF : MSOLVE_NEWLINE_LF;
+    }
+    previous_was_cr = (ch == '\r');
+  }
+  fclose(file);
+  return MSOLVE_NEWLINE_UNKNOWN;
+}
+
+static int normalize_file_newline_style(const char *filename, int newline_style) {
+  FILE *ifile = NULL;
+  FILE *ofile = NULL;
+  char *tmp_name = NULL;
+  int status = 0;
+  int previous_was_cr = 0;
+
+  if (filename == NULL || newline_style == MSOLVE_NEWLINE_UNKNOWN) {
+    return 0;
+  }
+
+  ifile = fopen(filename, "rb");
+  if (ifile == NULL) {
+    fprintf(stderr, "Cannot open output file for newline conversion: %s (%s)\n",
+            filename, strerror(errno));
+    return 1;
+  }
+
+  const size_t tmp_name_size = strlen(filename) + 32;
+  tmp_name = malloc(tmp_name_size);
+  if (tmp_name == NULL) {
+    fclose(ifile);
+    fprintf(stderr, "Cannot allocate memory for output file conversion.\n");
+    return 1;
+  }
+  snprintf(tmp_name, tmp_name_size, "%s.__msolve_tmp", filename);
+
+  ofile = fopen(tmp_name, "wb");
+  if (ofile == NULL) {
+    fprintf(stderr, "Cannot create temporary output file %s (%s)\n",
+            tmp_name, strerror(errno));
+    fclose(ifile);
+    free(tmp_name);
+    return 1;
+  }
+
+  for (;;) {
+    const int ch = fgetc(ifile);
+    if (ch == EOF) {
+      break;
+    }
+
+    if (ch == '\r') {
+      if (previous_was_cr && write_newline(ofile, newline_style) != 0) {
+        status = 1;
+        break;
+      }
+      previous_was_cr = 1;
+      continue;
+    }
+
+    if (ch == '\n') {
+      if (write_newline(ofile, newline_style) != 0) {
+        status = 1;
+      }
+      previous_was_cr = 0;
+      if (status != 0) {
+        break;
+      }
+      continue;
+    }
+
+    if (previous_was_cr) {
+      if (write_newline(ofile, newline_style) != 0) {
+        status = 1;
+        break;
+      }
+      previous_was_cr = 0;
+    }
+    if (fputc(ch, ofile) == EOF) {
+      status = 1;
+      break;
+    }
+  }
+
+  if (status == 0 && previous_was_cr && write_newline(ofile, newline_style) != 0) {
+    status = 1;
+  }
+
+  if (ferror(ifile)) {
+    status = 1;
+  }
+
+  if (fclose(ifile) != 0) {
+    status = 1;
+  }
+  if (fclose(ofile) != 0) {
+    status = 1;
+  }
+
+  if (status != 0) {
+    fprintf(stderr, "Cannot normalize output file line endings for %s.\n", filename);
+    remove(tmp_name);
+    free(tmp_name);
+    return 1;
+  }
+
+  if (rename(tmp_name, filename) != 0) {
+    if (remove(filename) != 0 || rename(tmp_name, filename) != 0) {
+      fprintf(stderr, "Cannot replace output file after newline conversion: %s (%s)\n",
+              filename, strerror(errno));
+      remove(tmp_name);
+      free(tmp_name);
+      return 1;
+    }
+  }
+
+  free(tmp_name);
+  return 0;
+}
 
 static inline void display_option_help(char short_opt, char *long_opt,
 				       char *arg_opt, char* str) {
@@ -518,6 +675,8 @@ int main(int argc, char **argv){
     fh =  NULL;
     bfh =  NULL;
 
+    const int output_newline_style = detect_file_newline_style(files->in_file);
+
     /* clear out_file if given */
     if(files->out_file != NULL){
       FILE *ofile = fopen(files->out_file, "w");
@@ -570,6 +729,12 @@ int main(int argc, char **argv){
                           normal_form_matrix, is_gb, lift_matrix, precision,
                           files, gens,
             &param, mpz_paramp, &nb_real_roots, &real_roots, &real_pts);
+
+    if (files->out_file != NULL && output_newline_style != MSOLVE_NEWLINE_UNKNOWN) {
+      if (normalize_file_newline_style(files->out_file, output_newline_style) != 0 && ret == 0) {
+        ret = 1;
+      }
+    }
 
     /* free parametrization */
     if(param != NULL && gens->field_char){
