@@ -3961,6 +3961,7 @@ int core_msolve(
   int32_t reduce_gb,
   int32_t print_gb,
   int32_t truncate_lifting,
+  int32_t output_elim_mode,
   int32_t get_param,
   int32_t genericity_handling,
   int32_t unstable_staircase,
@@ -4029,7 +4030,7 @@ restart:
                     /* gens->field_char, 0 [> DRL order <], gens->nvars, */
                     gens->ngens, saturate, initial_hts, nr_threads, max_pairs,
                     update_ht, la_option, use_signatures, 1 /* reduce_gb */, 0,
-                    0 /*truncate_lifting */, info_level);
+                    0 /*truncate_lifting */, info_level, 1 /* output_elim_mode */);
 
             if (st->homogeneous != 1) {
                 fprintf(stderr,
@@ -4111,7 +4112,7 @@ restart:
                     /* gens->field_char, 0 [> DRL order <], gens->nvars, */
                     gens->ngens, saturate, initial_hts, nr_threads, max_pairs,
                     update_ht, la_option, use_signatures, 1 /* reduce_gb */, 0,
-                    0 /*truncate_lifting */, info_level);
+                    0 /*truncate_lifting */, info_level, 1 /* output_elim_mode */);
 
             if (!success) {
                 fprintf(stderr,"Bad input data, stopped computation.\n");
@@ -4203,7 +4204,7 @@ restart:
                     /* gens->field_char, 0 [> DRL order <], gens->nvars, */
                     gens->ngens, 1, initial_hts, nr_threads, max_pairs,
                     update_ht, la_option, use_signatures, 1 /* reduce_gb */, 0,
-                    0 /*truncate_lifting */, info_level);
+                    0 /*truncate_lifting */, info_level, 1 /* output_elim_mode */);
 
 	    st->gfc  = gens->field_char;
             if(info_level){
@@ -4589,7 +4590,7 @@ restart:
                     /* gens->field_char, 0 [> DRL order <], gens->nvars, */
                     gens->ngens, normal_form, initial_hts, nr_threads, max_pairs,
                     update_ht, la_option, use_signatures, 1 /* reduce_gb */, 0,
-                    0 /*truncate_lifting */, info_level);
+                    0 /*truncate_lifting */, info_level, 1 /* output_elim_mode */);
 
             st->gfc  = gens->field_char;
             if (!success) {
@@ -5139,6 +5140,7 @@ restart:
               flags->info_level = info_level;
               flags->pbm_file = generate_pbm;
               flags->print_gb = print_gb;
+              flags->output_elim_mode = output_elim_mode;
               flags->files = files;
 
               print_msolve_gbtrace_qq(gens, flags);
@@ -5554,7 +5556,7 @@ void msolve_julia(
     int ret = core_msolve(la_option, use_signatures, nr_threads, info_level,
 			  initial_hts, max_nr_pairs, elim_block_len, reset_ht,
                           0 /* generate pbm */, 1 /* reduce_gb */,
-                          print_gb, 0 /*truncate_lifting*/, get_param,
+                          print_gb, 0 /*truncate_lifting*/, 1 /* output_elim_mode */, get_param,
 			  genericity_handling, 0 /* unstable_staircase -> change to 2?*/,
 			  0 /* saturate */, 0 /* colon */,
 			  0 /* normal_form */, 0 /* normal_form_matrix */,

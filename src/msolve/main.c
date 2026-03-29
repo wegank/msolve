@@ -135,6 +135,9 @@ static inline void display_help(char *str){
   display_option_help_noopt("between 1 and #variables-1, and gives the number of\n");
   display_option_help_noopt("eliminated variables. The basis with the first block of\n");
   display_option_help_noopt("ELIM variables eliminated is then computed.\n");
+  display_option_help('E', "output-elimination", "OEMODE", "Controls elimination output mode (with -g).\n");
+  display_option_help_noopt("OEMODE = 1  -> elimination output (without eliminated variables, default).\n");
+  display_option_help_noopt("OEMODE = 43 -> full basis.\n");
   display_option_help('I', "isolate", "ISOL", "Isolates the real roots (provided some univariate data)\n");
   display_option_help_noopt("without re-computing a Gröbner basis\n");
   display_option_help_noopt("0 - no (default).\n");
@@ -206,6 +209,7 @@ static void getoptions(
         int32_t *reduce_gb,
         int32_t *print_gb,
         int32_t *truncate_lifting,
+        int32_t *output_elim_mode,
         int32_t *genericity_handling,
         int32_t *unstable_staircase,
         int32_t *saturate,
@@ -228,7 +232,7 @@ static void getoptions(
   char *out_fname = NULL;
   char *bin_out_fname = NULL;
   opterr = 1;
-  char short_options[] = "c:Cd:e:f:F:g:hiI:l:L:m:M:n:N:o:O:p:P:q:r:R:s:St:u:v:V";
+  char short_options[] = "c:Cd:e:E:f:F:g:hiI:l:L:m:M:n:N:o:O:p:P:q:r:R:s:St:u:v:V";
 
   /* For long options that have no equivalent short option, use a
      non-character as a pseudo short option, starting with CHAR_MAX + 1.
@@ -242,6 +246,8 @@ static void getoptions(
   struct option long_options[] = {
     {"elimination", required_argument, NULL, 'e'},
     {"file", required_argument, NULL, 'f'},
+    {"output-elimination", required_argument, NULL, 'E'},
+    {"full-elimination-basis", required_argument, NULL, 'E'},
     {"groebner-basis", required_argument, NULL, 'g'},
     {"help", no_argument, NULL, 'h'},
     {"isolate", required_argument, NULL, 'I'},
@@ -285,6 +291,14 @@ static void getoptions(
       *elim_block_len = strtol(optarg, NULL, 10);
       if (*elim_block_len < 0) {
           *elim_block_len = 0;
+      }
+      break;
+    case 'E':
+      *output_elim_mode = strtol(optarg, NULL, 10);
+      if (*output_elim_mode != 1 &&
+          *output_elim_mode != 43) {
+          fprintf(stderr, "Invalid value for -E: expected 1 or 43.\n");
+          errflag++;
       }
       break;
     case 'u':
@@ -455,6 +469,7 @@ int main(int argc, char **argv){
     int32_t generate_pbm          = 0;
     int32_t reduce_gb             = 1;
     int32_t print_gb              = 0;
+    int32_t output_elim_mode      = 1;
     int32_t truncate_lifting      = 0;
     int32_t genericity_handling   = 2;
     int32_t unstable_staircase    = 2;
@@ -478,7 +493,7 @@ int main(int argc, char **argv){
     files->bin_out_file = NULL;
     getoptions(argc, argv, &initial_hts, &nr_threads, &max_pairs,
                &elim_block_len, &la_option, &use_signatures, &update_ht,
-               &reduce_gb, &print_gb, &truncate_lifting, &genericity_handling, &unstable_staircase, &saturate, &colon,
+               &reduce_gb, &print_gb, &truncate_lifting, &output_elim_mode, &genericity_handling, &unstable_staircase, &saturate, &colon,
                &normal_form, &normal_form_matrix, &is_gb, &lift_matrix, &get_param,
                &precision, &refine, &isolate, &generate_pbm,
 	       &seed, &info_level, files);
@@ -565,7 +580,7 @@ int main(int argc, char **argv){
     /* main msolve functionality */
     int ret = core_msolve(la_option, use_signatures, nr_threads, info_level,
                           initial_hts, max_pairs, elim_block_len, update_ht,
-                          generate_pbm, reduce_gb, print_gb, truncate_lifting, get_param,
+                          generate_pbm, reduce_gb, print_gb, truncate_lifting, output_elim_mode, get_param,
                           genericity_handling, unstable_staircase, saturate, colon, normal_form,
                           normal_form_matrix, is_gb, lift_matrix, precision,
                           files, gens,

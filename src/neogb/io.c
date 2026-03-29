@@ -785,6 +785,7 @@ int32_t check_and_set_meta_data(
         const int32_t reduce_gb,
         const int32_t pbm_file,
         const int32_t truncate_lifting,
+        const int32_t output_elim_mode,
         const int32_t info_level
         )
 {
@@ -833,6 +834,7 @@ int32_t check_and_set_meta_data(
         fprintf(stderr,"error: Too large elimination block.\n");
         exit(1);
     }
+    st->onev = output_elim_mode == 43 ? 0 : st->nev;
     /* set hash table size */
     st->init_hts  = ht_size;
     if (st->init_hts <= 0) {
@@ -1119,7 +1121,7 @@ int32_t check_and_set_meta_data_trace(
             field_char, mon_order, elim_block_len, nr_vars, nr_gens,
             nr_nf, ht_size, nr_threads, max_nr_pairs, reset_hash_table,
             la_option, use_signatures, reduce_gb, pbm_file, truncate_lifting,
-            info_level);
+            1 /* output_elim_mode */, info_level);
 }
 
 static inline void reset_function_pointers(

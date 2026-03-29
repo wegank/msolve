@@ -97,6 +97,7 @@ int32_t check_and_set_meta_data(
         const int32_t reduce_gb,
         const int32_t pbm_file,
         const int32_t truncate_lifting,
+        const int32_t output_elim_mode,
         const int32_t info_level
         );
 

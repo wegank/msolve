@@ -44,6 +44,7 @@ int initialize_gba_input_data(
         int32_t reduce_gb,
         int32_t pbm_file,
         int32_t truncate_lifting,
+        int32_t output_elim_mode,
         int32_t info_level
         )
 {
@@ -74,7 +75,8 @@ int initialize_gba_input_data(
     if (check_and_set_meta_data(st, lens, exps, cfs, invalid_gens,
                 field_char, mon_order, elim_block_len, nr_vars, nr_gens,
                 nr_nf, ht_size, nr_threads, max_nr_pairs, reset_ht, la_option,
-                use_signatures, reduce_gb, pbm_file, truncate_lifting, info_level)) {
+                use_signatures, reduce_gb, pbm_file, truncate_lifting,
+                output_elim_mode, info_level)) {
         return 0;
     }
 

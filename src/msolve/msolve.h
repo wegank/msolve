@@ -137,6 +137,7 @@ int core_msolve(
         int32_t reduce_gb,
         int32_t print_gb,
         int32_t truncate_lifting,
+        int32_t output_elim_mode,
         int32_t get_param,
         int32_t genericity_handling,
         int32_t unstable_staircase,

@@ -108,6 +108,14 @@ thanks to the `-e` flag. The following command
 ```
 will perform the Groebner basis computation eliminating the first variable. 
 More generally, using `-e k` will eliminate the first `k` variables. 
+You can control elimination output with `-E`:
+- `-E 1` (default): output basis elements without eliminated variables;
+- `-E 43`: output the whole basis.
+
+For example, to output the whole basis in elimination mode:
+```
+./msolve -e 1 -E 43 -g 2 -f in.ms -o out.ms
+```
 
 # Solving over the real numbers
 

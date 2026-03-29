@@ -194,7 +194,7 @@ static inline void gb_modpoly_init(gb_modpoly_t modgbs,
       }
   }
   for(bl_t i = 0; i < modgbs->ld; i++){
-      modgbs->lmps[i] = bs->lmps[i];
+      modgbs->lmps[i] = i;
   }
   for(int32_t i = 0; i < ld; i++){
     for(int j = 0; j < nv; j++){
@@ -295,20 +295,29 @@ static inline void display_gbmodpoly_cf_32(FILE *file,
   fprintf(file, "]:\n");
 }
 
+static inline int32_t display_monomial_modpoly(FILE *file,
+                                               gb_modpoly_t modgbs,
+                                               int32_t pos,
+                                               data_gens_ff_t *gens){
+  data_gens_ff_t gens_view = *gens;
+  gens_view.elim = gens_view.nvars - modgbs->nv;
+  return display_monomial_single(file, &gens_view, pos, &modgbs->ldm);
+}
+
 static inline void display_modpoly(FILE *file,
                                    gb_modpoly_t modgbs,
                                    int32_t pos,
                                    data_gens_ff_t *gens){
 
   if(modgbs->modpolys[pos]->len == 0){
-    display_monomial_single(file, gens, pos, &modgbs->ldm);
+    display_monomial_modpoly(file, modgbs, pos, gens);
     return;
   }
   if(mpz_cmp_ui(modgbs->modpolys[pos]->lm, 1) != 0){
     mpz_out_str(file, 10, modgbs->modpolys[pos]->lm);
     fprintf(file, "*");
   }
-  display_monomial_single(file, gens, pos, &modgbs->ldm);
+  display_monomial_modpoly(file, modgbs, pos, gens);
 
   len_t idx, i, k;
   hm_t *hm    = NULL;
@@ -453,10 +462,10 @@ static inline void display_lm_gbmodpoly_cf_qq(FILE *file,
 
   fprintf(file, "[");
   for(int i = 0; i < p-1; i++){
-    display_monomial_single(file, gens, i, &modgbs->ldm);
+    display_monomial_modpoly(file, modgbs, i, gens);
     fprintf(file, ", \n");
   }
-  display_monomial_single(file, gens, p-1, &modgbs->ldm);
+  display_monomial_modpoly(file, modgbs, p-1, gens);
   fprintf(file, "]:\n");
 }
 
@@ -736,13 +745,13 @@ static int32_t gb_modular_trace_learning(gb_modpoly_t modgbs,
     leadmons[0] = bexp_lm;
 
     int32_t len = bs->lml;
-    num_gb[0] = compute_num_gb(bexp_lm, len, bht->nv, st->nev);
+    num_gb[0] = compute_num_gb(bexp_lm, len, bht->nv, st->onev);
     int32_t *bexp_lm2 = NULL;
-    if(st->nev){
-      bexp_lm2 = calloc(num_gb[0]*(bht->nv - st->nev), sizeof(int32_t));
+    if(st->onev){
+      bexp_lm2 = calloc(num_gb[0]*(bht->nv - st->onev), sizeof(int32_t));
       for(int32_t i = 0; i < num_gb[0]; i++){
-        for(int j = 0; j < bht->nv - st->nev; j++){
-          bexp_lm2[i*(bht->nv - st->nev) + j] = bexp_lm[i*bht->nv + st->nev + j];
+        for(int j = 0; j < bht->nv - st->onev; j++){
+          bexp_lm2[i*(bht->nv - st->onev) + j] = bexp_lm[i*bht->nv + st->onev + j];
         }
       }
       leadmons[0] = bexp_lm2;
@@ -751,8 +760,8 @@ static int32_t gb_modular_trace_learning(gb_modpoly_t modgbs,
 
     /**
     * int32_t *lmb;
-    * if(st->nev){
-    *   lmb = NULL; //monomial_basis_enlarged(num_gb[0], bht->nv - st->nev,  bexp_lm2, &dquot);
+    * if(st->onev){
+    *   lmb = NULL; //monomial_basis_enlarged(num_gb[0], bht->nv - st->onev,  bexp_lm2, &dquot);
     * }
     * else{
     *   lmb = NULL; //monomial_basis_enlarged(num_gb[0], bht->nv,  bexp_lm, &dquot);
@@ -761,16 +770,16 @@ static int32_t gb_modular_trace_learning(gb_modpoly_t modgbs,
 
     /************************************************/
 
-    int32_t *lens = array_of_lengths(leadmons[0], num_gb[0], bs, bht->nv - st->nev);
+    int32_t *lens = array_of_lengths(leadmons[0], num_gb[0], bs, bht->nv - st->onev);
 
     if(truncate_lifting != 0 && truncate_lifting < num_gb[0]){
-      gb_modpoly_init(modgbs, 2, lens, bs, bht->nv - st->nev, truncate_lifting, leadmons[0], st);
+      gb_modpoly_init(modgbs, 2, lens, bs, bht->nv - st->onev, truncate_lifting, leadmons[0], st);
     }
     else{
-      gb_modpoly_init(modgbs, 2, lens, bs, bht->nv - st->nev, num_gb[0], leadmons[0], st);
+      gb_modpoly_init(modgbs, 2, lens, bs, bht->nv - st->onev, num_gb[0], leadmons[0], st);
     }
     free(lens);
-    modpgbs_set(modgbs, bs, bht, fc, start, st->nev);
+    modpgbs_set(modgbs, bs, bht, fc, start, st->onev);
     int is_empty = 0;
     if(bs->lml == 1){
         if(info_level){
@@ -844,7 +853,7 @@ static void gb_modular_trace_application(gb_modpoly_t modgbs,
       return;
   }
   int32_t lml = bs->lml;
-  if (st->nev > 0) {
+  if (st->onev > 0) {
       int32_t j = 0;
       for (len_t i = 0; i < bs->lml; ++i) {
           if ((*bht)->ev[bs->hm[bs->lmps[i]][OFFSET]][0] == 0) {
@@ -863,7 +872,7 @@ static void gb_modular_trace_application(gb_modpoly_t modgbs,
       return;
   }
 
-  if(st->nev){
+  if(st->onev){
     get_lm_from_bs_trace_elim(bs, bht[0], leadmons_current[0], num_gb[0]);
   }
   else{
@@ -871,13 +880,13 @@ static void gb_modular_trace_application(gb_modpoly_t modgbs,
   }
 
   if(!equal_staircase(leadmons_current[0], leadmons_ori[0],
-                      num_gb[0], num_gb[0], bht[0]->nv - st->nev)){
+                      num_gb[0], num_gb[0], bht[0]->nv - st->onev)){
     bad_primes[0] = 1;
   }
 
   if(!bad_primes[0] && bs != NULL){
     /* copy of data for multi-mod computation */
-    modpgbs_set(modgbs, bs, bht[0], lp->p[0], start, st->nev);
+    modpgbs_set(modgbs, bs, bht[0], lp->p[0], start, st->onev);
   }
 
   if (bs != NULL) {
@@ -1371,7 +1380,7 @@ restart:
     if(!dlinit){
       int nb = 0;
       int32_t *ldeg = array_nbdegrees((*msd->leadmons_ori), msd->num_gb[0],
-                                      bs->ht->nv - st->nev, &nb);
+                                      bs->ht->nv - st->onev, &nb);
       data_lift_init(dlift, (*modgbsp)->ld, ldeg, nb);
       choose_coef_to_lift((*modgbsp), dlift);
       free(ldeg);
@@ -1726,6 +1735,7 @@ gb_modpoly_t *groebner_qq(
   int32_t pbm_file = flags->pbm_file;
   int32_t print_gb = flags->print_gb;
   int32_t truncate_lifting = flags->truncate_lifting;
+  int32_t output_elim_mode = flags->output_elim_mode;
   int mon_order = 0;
 
   /* input data */
@@ -1762,7 +1772,7 @@ gb_modpoly_t *groebner_qq(
           lens, exps, cfs, field_char, mon_order, elim_block_len,
           nr_vars, nr_gens, 0 /* # normal forms */, ht_size,
           nr_threads, max_nr_pairs, reset_ht, la_option, use_signatures,
-          reduce_gb, pbm_file, truncate_lifting, info_level);
+          reduce_gb, pbm_file, truncate_lifting, output_elim_mode, info_level);
 
   /* all input generators are invalid */
   if (success == -1) {
@@ -1834,7 +1844,7 @@ void print_msolve_gbtrace_qq(data_gens_ff_t *gens,
   fprintf(ofile, "#---\n");
   fprintf(ofile, "#field characteristic: 0\n");
   fprintf(ofile, "#variable order:       ");
-  for (int i = gens->elim; i < gens->nvars-1; ++i) {
+  for (int i = gens->nvars - (*modgbsp)->nv; i < gens->nvars-1; ++i) {
     fprintf(ofile, "%s, ", gens->vnames[i]);
   }
   fprintf(ofile, "%s\n", gens->vnames[gens->nvars-1]);
@@ -1928,7 +1938,7 @@ int64_t export_groebner_qq(
             lens, exps, cfs, field_char, mon_order, elim_block_len,
             nr_vars, nr_gens, 0 /* # normal forms */, ht_size,
             nr_threads, max_nr_pairs, reset_ht, la_option, 0 /*use_signatures*/,
-            reduce_gb, pbm_file, truncate_lifting, info_level);
+            reduce_gb, pbm_file, truncate_lifting, 1 /* output_elim_mode */, info_level);
 
     /* all input generators are invalid */
     if (success == -1) {

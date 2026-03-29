@@ -362,6 +362,7 @@ typedef struct{
   int32_t use_signatures;
   int32_t info_level;
   int32_t print_gb;
+  int32_t output_elim_mode; /* 1: elimination output, 43: full basis */
   int32_t truncate_lifting;
   int32_t pbm_file;
   files_gb *files;

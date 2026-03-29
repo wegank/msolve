@@ -389,6 +389,7 @@ struct md_t
     uint32_t gfc; /* global field characteristic */
     uint32_t fc;
     int32_t nev; /* number of elimination variables */
+    int32_t onev; /* number of elimination variables in GB output */
     int32_t mo; /* monomial ordering: 0=DRL, 1=LEX*/
     int32_t laopt;
     int32_t init_hts;
