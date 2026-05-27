@@ -21,6 +21,7 @@
 
 #include "f4sat.h"
 #include "../msolve/streams.h"
+#include "vla.h"
 
 static inline void free_kernel_coefficients(
         bs_t *kernel
@@ -321,7 +322,7 @@ static len_t quotient_basis(
 
     const len_t nv  = (*htp)->nv;
 
-    exp_t ev[nv+1];
+    VLA(ev, nv+1, exp_t);
     memset(ev, 0, (unsigned long)(nv+1) * sizeof(exp_t));
 
     len_t *ind      = calloc((unsigned long)nv, sizeof(len_t));
@@ -392,7 +393,7 @@ static void update_multipliers(
     check_enlarge_basis(sat, qdim, st);
 
     hm_t *qb  = *qdp;
-    exp_t etmp[bht->evl];
+    VLA(etmp, bht->evl, exp_t);
     memset(etmp, 0, (unsigned long)bht->evl * sizeof(exp_t));
 
     /* remove elements that moved directly to kernel, i.e. monomials

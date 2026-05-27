@@ -21,6 +21,7 @@
 
 #include "hash.h"
 #include "../msolve/streams.h"
+#include "vla.h"
 
 /* we have three different hash tables:
  * 1. one hash table for elements in the basis (bht)
@@ -1312,7 +1313,7 @@ static inline hi_t get_lcm(
     /* exponents of basis elements, thus from basis hash table */
     const exp_t * const ea = ht1->ev[a];
     const exp_t * const eb = ht1->ev[b];
-    exp_t etmp[ht1->evl];
+    VLA(etmp, ht1->evl, exp_t);
     const len_t evl = ht1->evl;
     const len_t ebl = ht1->ebl;
 

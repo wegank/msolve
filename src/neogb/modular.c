@@ -21,6 +21,7 @@
 
 #include "modular.h"
 #include "../msolve/streams.h"
+#include "vla.h"
 
 static int minimal_traced_lm_is_equal(
         const hm_t *lmh,
@@ -711,7 +712,7 @@ bs_t *f4sat_trace_application_phase(
 
     /* initialize multiplier of first element in sat to be the hash of
      * the all-zeroes exponent vector. */
-    exp_t zero[bht->evl];;
+    VLA(zero, bht->evl, exp_t);
     memset(zero, 0, (unsigned long)(bht->evl) * sizeof(exp_t));
     sat->hm[0][MULT]  = insert_in_hash_table(zero, bht);
     sat->ld = 1;
@@ -1194,7 +1195,7 @@ bs_t *f4sat_trace_learning_phase_1(
     st->ps  = ps;
     /* initialize multiplier of first element in sat to be the hash of
      * the all-zeroes exponent vector. */
-    exp_t zero[bht->evl];;
+    VLA(zero, bht->evl, exp_t);
     memset(zero, 0, (unsigned long)(bht->evl) * sizeof(exp_t));
     sat->hm[0][MULT]  = insert_in_hash_table(zero, bht);
     sat->ld = 1;
@@ -1523,7 +1524,7 @@ bs_t *f4sat_trace_learning_phase_2(
 
     /* initialize multiplier of first element in sat to be the hash of
      * the all-zeroes exponent vector. */
-    exp_t zero[bht->evl];;
+    VLA(zero, bht->evl, exp_t);
     memset(zero, 0, (unsigned long)(bht->evl) * sizeof(exp_t));
     sat->hm[0][MULT]  = insert_in_hash_table(zero, bht);
     sat->ld = 1;

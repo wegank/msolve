@@ -27,6 +27,8 @@
 #include <immintrin.h>
 #endif
 
+#include "vla.h"
+
 /* select_all_pairs() is unused at the moment */
 #if 0
 static void select_all_spairs(
@@ -45,7 +47,7 @@ static void select_all_spairs(
     hi_t lcm;
     len_t *gens;
     exp_t *elcm, *eb;
-    exp_t etmp[bht->evl];
+    VLA(etmp, bht->evl, exp_t);
 
     /* timings */
     double ct0, ct1, rt0, rt1;
@@ -210,7 +212,7 @@ static int32_t select_spairs_by_minimal_degree(
     len_t *gens;
     exp_t *elcm, *eb;
     ht_t *bht   = bs->ht;
-    exp_t etmp[bht->evl];
+    VLA(etmp, bht->evl, exp_t);
     ps_t *psl   = md->ps;
     ht_t *sht   = md->ht;
 
@@ -516,7 +518,7 @@ static inline void find_multiplied_reducer(
     const sdm_t * const lms = bs->lm;
     const bl_t * const lmps = bs->lmps;
 
-    exp_t etmp[bht->evl];
+    VLA(etmp, bht->evl, exp_t);
     const hd_t * const hdb  = bht->hd;
     exp_t * const * const evb = bht->ev;
 
