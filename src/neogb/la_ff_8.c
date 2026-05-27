@@ -980,7 +980,7 @@ static void probabilistic_sparse_reduced_echelon_form_ff_8(
                     }
                     cfs = mat->cf_8[npiv[COEFFS]];
                     sc  = npiv[OFFSET];
-                    k   = __sync_bool_compare_and_swap(&pivs[npiv[OFFSET]], NULL, npiv);
+                    k   = atomic_compare_exchange_strong((_Atomic(hm_t *) *)&pivs[npiv[OFFSET]], &(hm_t *){NULL}, npiv);
                 } while (!k);
                 bctr++;
             }
@@ -1122,7 +1122,7 @@ static int exact_application_sparse_reduced_echelon_form_ff_8(
                     normalize_sparse_matrix_row_ff_8(
                             mat->cf_8[npiv[COEFFS]], npiv[PRELOOP], npiv[LENGTH], st->fc);
                 }
-                k   = __sync_bool_compare_and_swap(&pivs[npiv[OFFSET]], NULL, npiv);
+                k   = atomic_compare_exchange_strong((_Atomic(hm_t *) *)&pivs[npiv[OFFSET]], &(hm_t *){NULL}, npiv);
                 cfs = mat->cf_8[npiv[COEFFS]];
             } while (!k);
         }
@@ -1256,7 +1256,7 @@ static void exact_trace_sparse_reduced_echelon_form_ff_8(
                 normalize_sparse_matrix_row_ff_8(
                         mat->cf_8[npiv[COEFFS]], npiv[PRELOOP], npiv[LENGTH], st->fc);
             }
-            k   = __sync_bool_compare_and_swap(&pivs[npiv[OFFSET]], NULL, npiv);
+            k   = atomic_compare_exchange_strong((_Atomic(hm_t *) *)&pivs[npiv[OFFSET]], &(hm_t *){NULL}, npiv);
             cfs = mat->cf_8[npiv[COEFFS]];
         } while (!k);
     }
@@ -1414,7 +1414,7 @@ static void exact_sparse_reduced_echelon_form_ff_8(
                         normalize_sparse_matrix_row_ff_8(
                                 mat->cf_8[npiv[COEFFS]], npiv[PRELOOP], npiv[LENGTH], st->fc);
                     }
-                    k   = __sync_bool_compare_and_swap(&pivs[npiv[OFFSET]], NULL, npiv);
+                    k   = atomic_compare_exchange_strong((_Atomic(hm_t *) *)&pivs[npiv[OFFSET]], &(hm_t *){NULL}, npiv);
                     cfs = mat->cf_8[npiv[COEFFS]];
                 }
             } while (!k);
@@ -1689,7 +1689,7 @@ static cf8_t **exact_dense_linear_algebra_ff_8(
             if (npc == -1) {
                 break;
             }
-            k = __sync_bool_compare_and_swap(&nps[npc], NULL, npiv);
+            k = atomic_compare_exchange_strong((_Atomic(cf8_t *) *)&nps[npc], &(cf8_t *){NULL}, npiv);
             /* some other thread has already added a pivot so we have to
              * recall the dense reduction process */
         } while (!k);
@@ -1839,7 +1839,7 @@ static cf8_t **probabilistic_dense_linear_algebra_ff_8(
                         bctr  = nrbl;
                         break;
                     }
-                    k = __sync_bool_compare_and_swap(&nps[npc], NULL, tmp);
+                    k = atomic_compare_exchange_strong((_Atomic(cf8_t *) *)&nps[npc], &(cf8_t *){NULL}, tmp);
                     /* some other thread has already added a pivot so we have to
                     * recall the dense reduction process */
                 } while (!k);
@@ -1975,7 +1975,7 @@ static cf8_t **probabilistic_sparse_dense_echelon_form_ff_8(
                         bctr  = nrbl;
                         break;
                     }
-                    k = __sync_bool_compare_and_swap(&nps[npc], NULL, tmp);
+                    k = atomic_compare_exchange_strong((_Atomic(cf8_t *) *)&nps[npc], &(cf8_t *){NULL}, tmp);
                     /* some other thread has already added a pivot so we have to
                     * recall the dense reduction process */
                 } while (!k);

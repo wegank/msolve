@@ -487,7 +487,7 @@ static void exact_sparse_reduced_echelon_form_ab_first_qq(
                 remove_content_of_sparse_matrix_row_qq(
                         mat->cf_qq[npiv[COEFFS]], npiv[PRELOOP], npiv[LENGTH]);
             }
-            k   = __sync_bool_compare_and_swap(&pivs[npiv[OFFSET]], NULL, npiv);
+            k   = atomic_compare_exchange_strong((_Atomic(hm_t *) *)&pivs[npiv[OFFSET]], &(hm_t *){NULL}, npiv);
             cfs = mat->cf_qq[npiv[COEFFS]];
         } while (k == 0);
         cfs = NULL;
@@ -661,7 +661,7 @@ static void exact_sparse_reduced_echelon_form_qq(
                 remove_content_of_sparse_matrix_row_qq(
                         mat->cf_qq[npiv[COEFFS]], npiv[PRELOOP], npiv[LENGTH]);
             }
-            k   = __sync_bool_compare_and_swap(&pivs[npiv[OFFSET]], NULL, npiv);
+            k   = atomic_compare_exchange_strong((_Atomic(hm_t *) *)&pivs[npiv[OFFSET]], &(hm_t *){NULL}, npiv);
             cfs = mat->cf_qq[npiv[COEFFS]];
         } while (k == 0);
         cfs = NULL;

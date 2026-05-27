@@ -29,6 +29,7 @@
 #include <string.h> /* for memset et al. */
 #include <limits.h>
 #include <math.h>
+#include <stdatomic.h>
 
 /* check if OpenMP is available */
 #ifdef _OPENMP
