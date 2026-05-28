@@ -1293,7 +1293,7 @@ restart:
     msd->lp->old = 0;
     msd->lp->ld = 1;
     msd->lp->p = calloc(1, sizeof(uint32_t));
-    normalize_initial_basis(bs, st->gfc);
+    neogb_normalize_initial_basis(bs, st->gfc);
   }
 
   uint32_t prime = 0;

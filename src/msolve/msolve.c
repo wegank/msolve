@@ -26,6 +26,17 @@
 #include "lifting-gb.c"
 #include "streams.h"
 
+#ifdef _MSC_VER
+#include <intrin.h>
+
+static __forceinline int __builtin_clzll(unsigned long long x)
+{
+    unsigned long index;
+    _BitScanReverse64(&index, x);   // x must be nonzero
+    return 63 - (int)index;
+}
+#endif
+
 #ifndef MAX
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
@@ -2233,7 +2244,7 @@ int msolve_trace_qq(mpz_param_t *mpz_paramp,
   calculate_divmask(bs_qq->ht);
 
   /* sort initial elements, smallest lead term first */
-  sort_r(bs_qq->hm, (unsigned long)bs_qq->ld, sizeof(hm_t *), initial_input_cmp,
+  sort_r(bs_qq->hm, (unsigned long)bs_qq->ld, sizeof(hm_t *), neogb_initial_input_cmp,
          bs_qq->ht);
   if (gens->field_char == 0) {
     remove_content_of_initial_basis(bs_qq);
@@ -2243,7 +2254,7 @@ int msolve_trace_qq(mpz_param_t *mpz_paramp,
     lp->old = 0;
     lp->ld = 1;
     lp->p = calloc(1, sizeof(uint32_t));
-    normalize_initial_basis(bs_qq, st->fc);
+    neogb_normalize_initial_basis(bs_qq, st->fc);
   }
 
   /* generate array to store modular bases */
@@ -4133,7 +4144,7 @@ restart:
                 import_input_data(sat, st, gens->ngens-saturate, gens->ngens, gens->lens, gens->exps, (void *)gens->cfs, NULL);
 
                 sat->ld = sat->lml  =  saturate;
-                /* normalize_initial_basis(tbr, st->gfc); */
+                /* neogb_normalize_initial_basis(tbr, st->gfc); */
                 for (int k = 0; k < saturate; ++k) {
                     sat->lmps[k]  = k; /* fix input element in tbr */
                 }
@@ -4264,7 +4275,7 @@ restart:
             tbr = initialize_basis(st, bht);
             import_input_data(tbr, st, gens->ngens-1, gens->ngens, gens->lens, gens->exps, (void *)gens->cfs, NULL);
             tbr->ld = tbr->lml  =  1;
-            /* normalize_initial_basis(tbr, st->gfc); */
+            /* neogb_normalize_initial_basis(tbr, st->gfc); */
             for (int k = 0; k < 1; ++k) {
                 tbr->lmps[k]  = k; /* fix input element in tbr */
             }
@@ -4622,7 +4633,7 @@ restart:
             import_input_data(tbr, st, gens->ngens-normal_form, gens->ngens,
                     gens->lens, gens->exps, (void *)gens->cfs, NULL);
             tbr->ld = tbr->lml  =  normal_form;
-            /* normalize_initial_basis(tbr, st->gfc); */
+            /* neogb_normalize_initial_basis(tbr, st->gfc); */
             for (int k = 0; k < normal_form; ++k) {
                 tbr->lmps[k]  = k; /* fix input element in tbr */
             }
@@ -4784,7 +4795,7 @@ restart:
 
             /* sort initial elements, smallest lead term first */
             sort_r(bs_qq->hm, (unsigned long)bs_qq->ld, sizeof(hm_t *),
-                    initial_input_cmp, bht);
+                    neogb_initial_input_cmp, bht);
             remove_content_of_initial_basis(bs_qq);
 
 
@@ -4966,7 +4977,7 @@ restart:
 
             /* sort initial elements, smallest lead term first */
             sort_r(bs_qq->hm, (unsigned long)bs_qq->ld, sizeof(hm_t *),
-                    initial_input_cmp, bht);
+                    neogb_initial_input_cmp, bht);
             remove_content_of_initial_basis(bs_qq);
 
 
@@ -5003,7 +5014,7 @@ restart:
                     sat_qq, st, gens->ngens-saturate, gens->ngens,
                     gens->lens, gens->exps, (void *)gens->mpz_cfs, NULL);
             sat_qq->ld = sat_qq->lml  =  saturate;
-            /* normalize_initial_basis(tbr, st->gfc); */
+            /* neogb_normalize_initial_basis(tbr, st->gfc); */
             for (int k = 0; k < saturate; ++k) {
                 sat_qq->lmps[k]  = k; /* fix input element in tbr */
             }

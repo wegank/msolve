@@ -21,6 +21,7 @@
 
 #include "f4.h"
 #include "../msolve/streams.h"
+#include "vla.h"
 
 static void final_remove_redundant_elements(
         bs_t *bs,
@@ -154,7 +155,7 @@ static void intermediate_reduce_basis(
     ht_t *bht   = *bhtp;
     ht_t *sht   = *shtp;
     hi_t *hcm   = *hcmp;
-    exp_t etmp[bht->evl];
+    VLA(etmp, bht->evl, exp_t);
     memset(etmp, 0, (unsigned long)(bht->evl) * sizeof(exp_t));
 
     mat->rr = (hm_t **)malloc((unsigned long)bs->lml * 2 * sizeof(hm_t *));
@@ -266,7 +267,7 @@ static void reduce_basis(
 
     ht_t *bht   = bs->ht;
     ht_t *sht   = md->ht;
-    exp_t etmp[bht->evl];
+    VLA(etmp, bht->evl, exp_t);
     memset(etmp, 0, (unsigned long)(bht->evl) * sizeof(exp_t));
 
     md->in_final_reduction_step = 1;

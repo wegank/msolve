@@ -20,24 +20,6 @@ LT_INIT
 # Checks for programs.
 AC_PROG_CC
 
-# Checks for libraries.
-# CAUTION: Order matters for static binary building.
-AC_SEARCH_LIBS([atan2],[m],
-    [],
-    [AC_MSG_ERROR(["The C math library was not found!"])])
-
-AC_SEARCH_LIBS([__gmpz_init],[gmp],
-    [],
-    [AC_MSG_ERROR(["GMP library was not found."])])
-
-AC_SEARCH_LIBS([mpfr_init],[mpfr],
-    [],
-    [AC_MSG_ERROR([MPFR library was not found.])])
-
-AC_SEARCH_LIBS([fmpz_add_ui],[flint],
-    [],
-    [AC_MSG_ERROR([FLINT library was not found.])])
-
 AC_CHECK_HEADERS([flint/nmod.h])
 
 # check if we want OpenMP support
@@ -54,7 +36,7 @@ if test x$openmp = xtrue ; then
 fi
 
 # Checks for header files.
-AC_CHECK_HEADERS([inttypes.h stdint.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([inttypes.h stdint.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE

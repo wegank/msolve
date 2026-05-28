@@ -39,6 +39,17 @@
 #include "../msolve/msolve-data.h"
 #include "../msolve/streams.h"
 
+#ifdef _MSC_VER
+#include <intrin.h>
+
+static __forceinline int __builtin_clzll(unsigned long long x)
+{
+    unsigned long index;
+    _BitScanReverse64(&index, x);   // x must be nonzero
+    return 63 - (int)index;
+}
+#endif
+
 #define THRESHOLDSHIFT 256
 #define POWER_HACK 1
 

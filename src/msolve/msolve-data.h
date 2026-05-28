@@ -24,9 +24,8 @@
 #include "../neogb/data.h"
 #include<flint/fmpz.h>
 #include<flint/fmpq.h>
-#include <unistd.h>
 #include <string.h>
-#include <getopt.h>
+#include "getopt.h"
 #include <ctype.h>
 #include "../neogb/libneogb.h"
 

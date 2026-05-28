@@ -22,6 +22,8 @@
 #include "config.h"
 #endif
 
+#include "getopt.h"
+#include "getopt.c"
 #include "msolve-data.h"
 #include "msolve-data.c"
 #include "streams.h"

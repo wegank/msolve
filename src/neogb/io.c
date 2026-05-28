@@ -21,6 +21,7 @@
 
 #include "io.h"
 #include "../msolve/streams.h"
+#include "vla.h"
 
 /* See exponent vector description in data.h for more information. */
 static inline void set_exponent_vector(
@@ -74,7 +75,7 @@ void sort_terms_ff_8(
   cf8_t tmpcf = 0;
 
   /* generate array of pointers to hm entries */
-  hm_t *phm[len];
+  VLA(phm, len, hm_t *);
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -122,7 +123,7 @@ void sort_terms_ff_16(
   cf16_t tmpcf  = 0;
 
   /* generate array of pointers to hm entries */
-  hm_t *phm[len];
+  VLA(phm, len, hm_t *);
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -170,7 +171,7 @@ void sort_terms_ff_32(
   cf32_t tmpcf  = 0;
 
   /* generate array of pointers to hm entries */
-  hm_t *phm[len];
+  VLA(phm, len, hm_t *);
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -219,7 +220,7 @@ void sort_terms_qq(
   mpz_init(tmpcf);
 
   /* generate array of pointers to hm entries */
-  hm_t *phm[len];
+  VLA(phm, len, hm_t *);
   for (i = 0; i < len; ++i) {
     phm[i]  = &hmo[i];
   }
@@ -1298,7 +1299,7 @@ static void write_pbm_file(
 
     for (i = 0; i < nru; ++i) {
         const len_t len = rows[i][LENGTH];
-        hm_t row[len];
+        VLA(row, len, hm_t);
         memcpy(row, rows[i]+OFFSET, (unsigned long)len * sizeof(hm_t));
         qsort(row, (unsigned long)len, sizeof(hm_t), pbm_cmp);
         /* the rows may not be sorted by column indices, thus we
@@ -1326,7 +1327,7 @@ static void write_pbm_file(
     rows  = mat->tr;
     for (i = 0; i < nrl; ++i) {
         const len_t len = rows[i][LENGTH];
-        hm_t row[len];
+        VLA(row, len, hm_t);
         memcpy(row, rows[i]+OFFSET, (unsigned long)len * sizeof(hm_t));
         qsort(row, (unsigned long)len, sizeof(hm_t), pbm_cmp);
         /* the rows may not be sorted by column indices, thus we

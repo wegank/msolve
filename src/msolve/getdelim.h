@@ -29,6 +29,16 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+# ifdef _WIN64
+#  define SSIZE_MAX LLONG_MAX
+# else
+#  define SSIZE_MAX LONG_MAX
+# endif
+#endif
+
 static inline void
 alloc_failed (void)
 {

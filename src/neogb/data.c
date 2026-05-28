@@ -28,13 +28,30 @@
 void (*normalize_initial_basis)(
         bs_t *bs,
         const uint32_t fc
-        );
+        ) = NULL;
+
+void neogb_normalize_initial_basis(
+        bs_t *bs,
+        const uint32_t fc
+        )
+{
+        normalize_initial_basis(bs, fc);
+}
 
 int (*initial_input_cmp)(
         const void *a,
         const void *b,
         void *ht
         );
+
+int neogb_initial_input_cmp(
+        const void *a,
+        const void *b,
+        void *ht
+        )
+{
+        return initial_input_cmp(a, b, ht);
+}
 
 int (*initial_gens_cmp)(
         const void *a,

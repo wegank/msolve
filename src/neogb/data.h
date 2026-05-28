@@ -29,6 +29,7 @@
 #include <string.h> /* for memset et al. */
 #include <limits.h>
 #include <math.h>
+#include <stdatomic.h>
 
 /* check if OpenMP is available */
 #ifdef _OPENMP
@@ -444,7 +445,18 @@ extern void (*normalize_initial_basis)(
         const uint32_t fc
         );
 
+extern void neogb_normalize_initial_basis(
+        bs_t *bs,
+        const uint32_t fc
+        );
+
 extern int (*initial_input_cmp)(
+        const void *a,
+        const void *b,
+        void *ht
+        );
+
+extern int neogb_initial_input_cmp(
         const void *a,
         const void *b,
         void *ht
