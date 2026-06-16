@@ -1,11 +1,13 @@
 AUTOMAKE_OPTIONS = color-tests
-SUBDIRS = src/usolve src/fglm src/neogb src/msolve
+SUBDIRS = lib src/usolve src/fglm src/neogb src/msolve
 
 AM_CFLAGS	= $(SIMD_FLAGS) $(CPUEXT_FLAGS) $(OPENMP_CFLAGS)
 LDADD 		= src/neogb/libneogb.la src/fglm/libfglm.la src/usolve/libusolve.la
 
 bin_PROGRAMS	= msolve
 msolve_SOURCES 	= src/msolve/main.c
+
+EXTRA_DIST = m4/gnulib-cache.m4
 
 check_PROGRAMS		= neogb_io \
 			  fglm_build_matrixn_radical-shape-31 \

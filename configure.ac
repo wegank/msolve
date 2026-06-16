@@ -19,6 +19,8 @@ LT_INIT
 
 # Checks for programs.
 AC_PROG_CC
+gl_EARLY
+gl_INIT
 
 # Checks for libraries.
 # CAUTION: Order matters for static binary building.
@@ -76,12 +78,13 @@ AX_GCC_BUILTIN([__builtin_clzll])
 AX_GCC_BUILTIN([__builtin_clzl])
 
 # Checks for library functions.
-AC_CHECK_FUNCS([floor getdelim gettimeofday memmove memset malloc realloc pow sqrt strchr strstr strtol])
+AC_CHECK_FUNCS([floor gettimeofday memmove memset malloc realloc pow sqrt strchr strstr strtol])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
  Makefile
  msolve.pc
+ lib/Makefile
  src/fglm/Makefile
  src/neogb/Makefile
  src/usolve/Makefile
