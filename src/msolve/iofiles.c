@@ -22,7 +22,7 @@
 
 #include "streams.h"
 
-static inline void store_exponent(const char *term, data_gens_ff_t *gens, int32_t pos)
+static inline void store_exponent(const char *term, data_gens_ff_t *gens, int64_t pos)
 {
     len_t i, j, k;
 
@@ -740,7 +740,7 @@ static inline void get_term(const char *line, char **prev_pos,
 /*assumes that coeffs in file fit in word size */
 static int get_coefficient_ff_and_term_from_line(char *line, int32_t nterms,
                                           int32_t field_char,
-                                          data_gens_ff_t *gens, int32_t pos){
+                                          data_gens_ff_t *gens, int64_t pos){
   char *prev_pos = NULL;
   size_t term_size = 50000;
   char *term  = (char *)malloc(term_size * sizeof(char));
@@ -773,8 +773,8 @@ static int get_coefficient_ff_and_term_from_line(char *line, int32_t nterms,
       iv_tmp  +=  field_char; //MS change int -> long int
     }
     gens->cfs[pos]  = (int32_t)iv_tmp;
-    store_exponent(term, gens, pos*gens->nvars);
-    for(int j = 1; j < nterms; j++){
+    store_exponent(term, gens, pos * (int64_t)gens->nvars);
+    for(int64_t j = 1; j < nterms; j++){
       get_term(line, &prev_pos, &term, &term_size);
       if (term != NULL) {
         cf_tmp  = (int64_t)strtol(term, NULL, 10);
@@ -796,7 +796,7 @@ static int get_coefficient_ff_and_term_from_line(char *line, int32_t nterms,
           cf_tmp  += field_char;
         }
         gens->cfs[pos+j] = (int32_t)cf_tmp;
-        store_exponent(term, gens, (pos+j)*gens->nvars);
+        store_exponent(term, gens, (pos + j) * (int64_t)gens->nvars);
       }
       //      store_exponent(term, basis, ht);
     }
@@ -874,7 +874,7 @@ static void inner_strterm_to_mpz(char *str, mpz_t *num, mpz_t *den){
 
 static int get_coefficient_mpz_and_term_from_line(char *line, int32_t nterms,
                                           int32_t field_char,
-                                          data_gens_ff_t *gens, int32_t pos){
+                                          data_gens_ff_t *gens, int64_t pos){
   char *prev_pos = NULL;
   size_t term_size = 50000;
   char *term  = (char *)malloc(term_size * sizeof(char));
@@ -884,11 +884,11 @@ static int get_coefficient_mpz_and_term_from_line(char *line, int32_t nterms,
   if(term != NULL){
 
     beginning_strterm_to_mpz(term, gens->mpz_cfs[pos], gens->mpz_cfs[pos+1]);
-    store_exponent(term, gens, pos/2*gens->nvars);
-    for(int j = 2; j < 2*nterms; j+=2){
+    store_exponent(term, gens, (pos / 2) * (int64_t)gens->nvars);
+    for(int64_t j = 2; j < 2*(int64_t)nterms; j+=2){
       get_term(line, &prev_pos, &term, &term_size);
       inner_strterm_to_mpz(term, gens->mpz_cfs[pos+j], gens->mpz_cfs[pos+j+1]);
-      store_exponent(term, gens, ((pos+j)/2)*gens->nvars);
+      store_exponent(term, gens, ((pos + j) / 2) * (int64_t)gens->nvars);
     }
     free(term);
     return 0;
@@ -900,7 +900,7 @@ static int get_coefficient_mpz_and_term_from_line(char *line, int32_t nterms,
 
 static void get_coeffs_and_exponents_ff32(FILE *fh, nelts_t all_nterms,
         int32_t *nr_gens, data_gens_ff_t *gens){
-    int32_t pos = 0;
+    int64_t pos = 0;
     size_t size;
     ssize_t len;
 
@@ -910,8 +910,8 @@ static void get_coeffs_and_exponents_ff32(FILE *fh, nelts_t all_nterms,
     if(getline(&line, &size, fh) !=-1){
     }
 
-    gens->cfs = (int32_t *)(malloc(sizeof(int32_t) * all_nterms));
-    gens->exps = (int32_t *)calloc(all_nterms * gens->nvars, sizeof(int32_t));
+    gens->cfs = (int32_t *)(malloc(sizeof(int32_t) * (size_t)all_nterms));
+    gens->exps = (int32_t *)calloc((size_t)all_nterms * (size_t)gens->nvars, sizeof(int32_t));
     for (int32_t i = 0; i < *nr_gens; i++) {
         do {
             len = getdelim(&line, &size, ',', fh);
@@ -940,7 +940,7 @@ static void get_coeffs_and_exponents_ff32(FILE *fh, nelts_t all_nterms,
 
 static void get_coeffs_and_exponents_mpz(FILE *fh, nelts_t all_nterms,
         int32_t *nr_gens, data_gens_ff_t *gens){
-    int32_t pos = 0;
+    int64_t pos = 0;
     size_t size;
     ssize_t len;
 
@@ -950,15 +950,15 @@ static void get_coeffs_and_exponents_mpz(FILE *fh, nelts_t all_nterms,
     if(getline(&line, &size, fh) !=-1){
     }
 
-    gens->cfs = (int32_t*)(malloc(sizeof(int32_t) * all_nterms));
+    gens->cfs = (int32_t*)(malloc(sizeof(int32_t) * (size_t)all_nterms));
 
-    gens->mpz_cfs = (mpz_t **)(malloc(sizeof(mpz_t *) * 2 * all_nterms));
-    for(long i = 0; i < 2 * all_nterms; i++){
+    gens->mpz_cfs = (mpz_t **)(malloc(sizeof(mpz_t *) * 2 * (size_t)all_nterms));
+    for(long i = 0; i < 2 * (long)all_nterms; i++){
       gens->mpz_cfs[i]  = (mpz_t *)malloc(sizeof(mpz_t));
       mpz_init(*(gens->mpz_cfs[i]));
     }
 
-    gens->exps = (int32_t *)calloc(all_nterms * gens->nvars, sizeof(int32_t));
+    gens->exps = (int32_t *)calloc((size_t)all_nterms * (size_t)gens->nvars, sizeof(int32_t));
     for (int32_t i = 0; i < *nr_gens; i++) {
         do {
             len = getdelim(&line, &size, ',', fh);

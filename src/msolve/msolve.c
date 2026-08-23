@@ -436,7 +436,8 @@ static inline void display_monomials_from_array_maple(FILE *file, long length,
  * new variable. */
 static int undo_variable_order_change(data_gens_ff_t *gens) {
   int32_t i, j;
-  int32_t len, tmp;
+  int64_t len;
+  int32_t tmp;
   char *tmp_char = NULL;
   const int32_t cvo = gens->change_var_order;
   const int32_t nvars = gens->nvars;
@@ -454,12 +455,12 @@ static int undo_variable_order_change(data_gens_ff_t *gens) {
     tmp = 0;
     for (i = 0; i < ngens; ++i) {
       for (j = 0; j < gens->lens[i]; ++j) {
-        tmp = gens->exps[len + j * nvars + nvars - 1];
-        gens->exps[len + j * nvars + nvars - 1] =
-            gens->exps[len + j * nvars + cvo];
-        gens->exps[len + j * nvars + cvo] = tmp;
+        tmp = gens->exps[len + (int64_t)j * nvars + nvars - 1];
+        gens->exps[len + (int64_t)j * nvars + nvars - 1] =
+            gens->exps[len + (int64_t)j * nvars + cvo];
+        gens->exps[len + (int64_t)j * nvars + cvo] = tmp;
       }
-      len += gens->lens[i] * nvars;
+      len += (int64_t)gens->lens[i] * nvars;
     }
   }
   /* all cyclic changes already done, stop here, try to add
@@ -474,7 +475,8 @@ static int undo_variable_order_change(data_gens_ff_t *gens) {
 static int change_variable_order_in_input_system(data_gens_ff_t *gens,
                                                  int32_t info_level) {
   int32_t i, j;
-  int32_t len, tmp;
+  int64_t len;
+  int32_t tmp;
   char *tmp_char = NULL;
   const int32_t cvo = gens->change_var_order;
   const int32_t nvars = gens->nvars;
@@ -490,12 +492,12 @@ static int change_variable_order_in_input_system(data_gens_ff_t *gens,
   tmp = 0;
   for (i = 0; i < gens->ngens; ++i) {
     for (j = 0; j < gens->lens[i]; ++j) {
-      tmp = gens->exps[len + j * nvars + nvars - 1];
-      gens->exps[len + j * nvars + nvars - 1] =
-          gens->exps[len + j * nvars + cvo + 1];
-      gens->exps[len + j * nvars + cvo + 1] = tmp;
+      tmp = gens->exps[len + (int64_t)j * nvars + nvars - 1];
+      gens->exps[len + (int64_t)j * nvars + nvars - 1] =
+          gens->exps[len + (int64_t)j * nvars + cvo + 1];
+      gens->exps[len + (int64_t)j * nvars + cvo + 1] = tmp;
     }
-    len += gens->lens[i] * nvars;
+    len += (int64_t)gens->lens[i] * nvars;
   }
   if (info_level > 0) {
     fprintf(VERBSTREAM, "\nChanging variable order for possibly more generic staircase:\n");

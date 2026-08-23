@@ -26,7 +26,7 @@
 static inline void set_exponent_vector(
         exp_t *ev,
         const int32_t *iev,  /* input exponent vectors */
-        const int32_t idx,
+        const int64_t idx,
         const ht_t *ht,
         const md_t *st
         )
@@ -42,12 +42,12 @@ static inline void set_exponent_vector(
     ev[ebl] = 0;
 
     for (i = 0; i < nev; ++i) {
-        ev[i+1] = (exp_t)(iev+(nv*idx))[i];
+        ev[i+1] = (exp_t)(iev+((int64_t)nv * idx))[i];
         /* degree */
         ev[0]   +=  ev[i+1];
     }
     for (i = nev; i < nv; ++i) {
-        ev[i+off] = (exp_t)(iev+(nv*idx))[i];
+        ev[i+off] = (exp_t)(iev+((int64_t)nv * idx))[i];
         /* degree */
         ev[ebl]    +=  ev[i+off];
     }
