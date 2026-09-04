@@ -71,7 +71,8 @@ checkdiff               = test/diff/diff_bug-2nd-prime-bad.sh \
 			  test/diff/diff_reals-dim0-extract.sh \
 			  test/diff/diff_reals-dim0.sh \
 			  test/diff/diff_reals-dim0-swapvar.sh \
-			  test/diff/diff_test-lifting2.sh
+			  test/diff/diff_test-lifting2.sh \
+			  test/diff/diff_univariate-cubic-close-roots.sh
 
 # dist_check_DATA         = test/input_files
 neogb_io_SOURCES 	= test/neogb/io/validate_input_data.c
