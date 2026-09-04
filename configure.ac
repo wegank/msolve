@@ -315,5 +315,9 @@ AC_CONFIG_LINKS([
  input_files/test-lifting2.ms:input_files/test-lifting2.ms
  output_files/test-lifting2.P2.d0.res:output_files/test-lifting2.P2.d0.res
  test/diff/diff_test-lifting2.sh:test/diff/diff_test-lifting2.sh
+ input_files/univariate-cubic-close-roots.ms:input_files/univariate-cubic-close-roots.ms
+ output_files/univariate-cubic-close-roots.p128.res:output_files/univariate-cubic-close-roots.p128.res
+ output_files/univariate-cubic-close-roots.p1024.res:output_files/univariate-cubic-close-roots.p1024.res
+ test/diff/diff_univariate-cubic-close-roots.sh:test/diff/diff_univariate-cubic-close-roots.sh
 ])
 AC_OUTPUT
