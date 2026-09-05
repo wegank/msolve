@@ -3345,6 +3345,20 @@ void lazy_single_real_root_param(mpz_param_t param, mpz_t *polelim,
     return;
   }
 
+  /* with a single variable the isolating interval for the elimination
+     variable already is the solution point: there are no other
+     coordinates to extract from the parametrization, so the
+     denominator-based refinement below (needed only to evaluate those
+     other coordinates) must be switched off. */
+  if (param->nvars == 1) {
+    mpz_set(pt->coords[0]->val_do, rt->numer);
+    mpz_set(pt->coords[0]->val_up, rt->numer);
+    mpz_add_ui(pt->coords[0]->val_up, pt->coords[0]->val_up, 1);
+    pt->coords[0]->k_up = rt->k;
+    pt->coords[0]->k_do = rt->k;
+    pt->coords[0]->isexact = 0;
+    return;
+  }
 
   int64_t b = 16;
   int64_t corr = 2 * (ns + rt->k);
