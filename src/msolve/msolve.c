@@ -20,6 +20,36 @@
 
 #include "msolve.h"
 #include "streams.h"
+
+/* duplicate.c, linear.c, lifting.c and lifting-gb.c are included below as a
+ * single translation unit and some of them call into functions defined
+ * further down that list (lifting.c uses linear.c's *_linear_forms helpers,
+ * lifting-gb.c uses lifting.c's *_rrec_data and duplicate.c's
+ * duplicate_data_mthread_gbtrace). Forward-declaring them here makes the
+ * #include order below cosmetic instead of load-bearing, so a formatter (or
+ * anyone) resorting those lines can no longer break the build. */
+static inline void duplicate_data_mthread_gbtrace(int nthreads,
+                                                   bs_t *bs,
+                                                   md_t *st,
+                                                   int32_t *num_gb,
+                                                   int32_t **leadmons_ori,
+                                                   int32_t **leadmons_current,
+                                                   trace_t **btrace);
+
+static inline mpz_t *allocate_crt_linear_forms(int nlins, int nv,
+                                                uint32_t **lineqs_ptr);
+static inline mpz_t *allocate_mpq_linear_forms(int nlins, int nv);
+static inline void crt_linear_forms_clear(mpz_t *crt_linear_forms, int nlins,
+                                          int nv);
+static inline void mpq_linear_forms_clear(mpz_t *mpq_linear_forms, int nlins,
+                                          int nv);
+static inline mpz_t *mpz_linear_forms_allocate(int nlins, int nv);
+static inline void mpz_linear_forms_clear(mpz_t *mpz_linear_forms, int nlins,
+                                          int nv);
+
+void initialize_rrec_data(rrec_data_t recdata);
+void free_rrec_data(rrec_data_t recdata);
+
 #include "duplicate.c"
 #include "linear.c"
 #include "lifting.c"

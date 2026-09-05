@@ -20,6 +20,7 @@
 
 #include "getdelim.h"
 
+#include "msolve-data.h"
 #include "streams.h"
 
 static inline void store_exponent(const char *term, data_gens_ff_t *gens, int64_t pos)

@@ -18,6 +18,8 @@
  * Christian Eder
  * Mohab Safey El Din */
 
+#include "msolve-data.h"
+
 static void initialize_mstrace(mstrace_t msd, md_t *st, bs_t *bs){
   msd->lp  = (primes_t *)calloc(st->nthrds, sizeof(primes_t));
 

@@ -24,6 +24,13 @@ This implementation is a (very) slight modification of the functions in FLINT.
 
  **/
 
+/* Force the real FLINT ulong_extras.h to be processed first: it and our
+ * local ulong_extras.h below share the ULONG_EXTRAS_H include guard, so
+ * whichever is seen first "wins". Without this, our copy only works by
+ * accident of #include order elsewhere pulling in FLINT's real header
+ * first; if it doesn't, our copy's own "#include
+ * ulong_extras/ll_mod_preinv.c" fails since that file isn't vendored here. */
+#include <flint/ulong_extras.h>
 #include "ulong_extras.h"
 #include "../msolve/streams.h"
 
