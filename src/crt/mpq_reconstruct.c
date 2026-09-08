@@ -25,6 +25,7 @@
 **/
 
 #include <gmp.h>
+#include "../msolve/msolve-data.h"
 #include "../msolve/streams.h"
 
 /* #define ROT(u,v,t)                                            \ */

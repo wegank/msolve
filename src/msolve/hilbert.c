@@ -21,6 +21,7 @@
 #include "../fglm/data_fglm.c"
 #include "../fglm/libfglm.h"
 #include "../neogb/meta_data.h"
+#include "msolve-data.h"
 #include "streams.h"
 #define REDUCTION_ALLINONE 1
 

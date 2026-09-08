@@ -25,6 +25,18 @@
 #include "msolve-data.h"
 #include "msolve-data.c"
 #include "streams.h"
+
+/* iofiles.c, hilbert.c, primes.c and msolve.c are included below as a single
+ * translation unit and some of them call into functions defined further
+ * down that list (hilbert.c uses iofiles.c's display_monomial_full;
+ * msolve.c/lifting-gb.c, included via msolve.c, use primes.c's
+ * next_prime). Forward-declaring them here makes the #include order below
+ * cosmetic instead of load-bearing. */
+static inline int32_t display_monomial_full(FILE *file, const int nv,
+                                            char **vnames,
+                                            int64_t pos, int32_t *bexp);
+uint32_t next_prime(uint32_t n);
+
 #include "iofiles.c"
 #include "hilbert.c"
 #include "primes.c"
